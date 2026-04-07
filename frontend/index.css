@@ -311,19 +311,62 @@ body.cart-open {
 
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 22px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+    margin-top: 40px;
+    padding-bottom: 60px;
+    animation: fadeSlideUp 0.8s ease-out;
+}
+
+@media (max-width: 1200px) {
+    .product-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 900px) {
+    .product-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+}
+
+@media (max-width: 500px) {
+    .product-grid { grid-template-columns: 1fr; }
 }
 
 .product-card {
-    padding: 16px;
     background: #fff;
-    border-radius: 22px;
-    border: 1px solid #ececec;
-    transform: translateY(18px);
-    opacity: 0;
-    animation: cardIn 550ms ease-out both;
-    transition: transform 220ms ease, box-shadow 220ms ease;
+    border: 1px solid #eee;
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    animation: cardIn 0.8s ease-out backwards;
+}
+
+.product-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    border-color: #8B7355;
+}
+
+.product-card .card-description {
+    font-size: 13px;
+    color: #666;
+    margin: 12px 0;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.product-card strong {
+    font-size: 20px;
+    color: #1a1a1a;
+    margin-top: auto;
+    font-family: 'Syne', sans-serif;
 }
 
 .book-card-shell {
@@ -354,11 +397,6 @@ body.cart-open {
 .product-card:nth-child(1) { animation-delay: 460ms; }
 .product-card:nth-child(2) { animation-delay: 560ms; }
 .product-card:nth-child(3) { animation-delay: 660ms; }
-
-.product-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.12);
-}
 
 .featured:hover .featured-book {
     transform: translate(-50%, -52%) rotate(-14deg);
