@@ -295,6 +295,19 @@ function bookFromCard(card) {
   return { id, title, author, price, imageUrl };
 }
 
+function syncCardDataset(card) {
+  const book = bookFromCard(card);
+  if (!card || !book) return null;
+
+  if (!card.dataset.id) card.dataset.id = book.id || '';
+  if (!card.dataset.title) card.dataset.title = encodeURIComponent(book.title || '');
+  if (!card.dataset.author) card.dataset.author = encodeURIComponent(book.author || '');
+  if (!card.dataset.price) card.dataset.price = String(book.price || 0);
+  if (!card.dataset.img) card.dataset.img = encodeURIComponent(book.imageUrl || '');
+
+  return book;
+}
+
 function showToast(msg, type) {
   let wrap = document.getElementById('tp-toast-wrap');
   if (!wrap) {
@@ -840,6 +853,79 @@ function addToCart(book) {
   updateCartBadge();
 }
 
+function buyNow(book) {
+  addToCart(book);
+  openCart();
+}
+
+function bindCardActions(card) {
+  if (!card || card.dataset.actionBound === 'true') return;
+
+  const wishlistBtn = card.querySelector('.wishlist-top');
+  const cartBtn = card.querySelector('.cart-btn');
+  const buyBtn = card.querySelector('.buy-btn');
+
+  wishlistBtn?.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const book = bookFromCard(card);
+    if (!book) return;
+
+    const list = getWishlist();
+    const idx = list.findIndex(w => w.id === book.id);
+    if (idx === -1) {
+      list.push(book);
+      saveWishlist(list);
+      wishlistBtn.textContent = '♥';
+      wishlistBtn.classList.add('wished');
+      showToast(`❤️ "${book.title}" added to wishlist!`, 'wish');
+    } else {
+      list.splice(idx, 1);
+      saveWishlist(list);
+      wishlistBtn.textContent = '♡';
+      wishlistBtn.classList.remove('wished');
+      showToast(`Removed "${book.title}" from wishlist.`, 'wish');
+    }
+  });
+
+  cartBtn?.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const book = bookFromCard(card);
+    if (!book) return;
+
+    addToCart(book);
+    showToast(`🛒 "${book.title}" added to cart!`, 'cart');
+    cartBtn.textContent = '✓ Added!';
+    cartBtn.style.background = '#2ecc71';
+    setTimeout(() => {
+      cartBtn.textContent = 'Add to Cart';
+      cartBtn.style.background = '';
+    }, 1500);
+  });
+
+  buyBtn?.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const book = bookFromCard(card);
+    if (!book) return;
+
+    buyNow(book);
+    showToast(`✅ "${book.title}" added! Open cart to checkout.`, 'buy');
+    buyBtn.textContent = '✓ In Cart!';
+    buyBtn.style.background = '#8B7355';
+    setTimeout(() => {
+      buyBtn.textContent = 'Buy Now';
+      buyBtn.style.background = '';
+    }, 1500);
+  });
+
+  card.dataset.actionBound = 'true';
+}
+
 document.addEventListener('click', function (e) {
   const wishBtn = e.target.closest('.wishlist-top');
   if (wishBtn) {
@@ -880,17 +966,19 @@ document.addEventListener('click', function (e) {
     const card = buyBtn.closest('.product-card, .book-tile');
     const book = bookFromCard(card);
     if (!book) return;
-    addToCart(book);
+    buyNow(book);
     showToast(`✅ "${book.title}" added! Open cart to checkout.`, 'buy');
     buyBtn.textContent = '✓ In Cart!';
     buyBtn.style.background = '#8B7355';
-    setTimeout(() => { buyBtn.textContent = 'Buy'; buyBtn.style.background = ''; }, 1500);
-    openCart();
+    setTimeout(() => { buyBtn.textContent = 'Buy Now'; buyBtn.style.background = ''; }, 1500);
     return;
   }
 
-  const cartIcon = e.target.closest('#tp-cart-nav-btn');
-  if (cartIcon) openCart();
+  const cartIcon = e.target.closest('[data-cart-toggle], #tp-cart-nav-btn');
+  if (cartIcon) {
+    e.preventDefault();
+    openCart();
+  }
 });
 
 function addCartToNav() {
@@ -919,17 +1007,33 @@ function addCartToNav() {
 function fixMissingButtons() {
   const cards = document.querySelectorAll('.product-card, .book-tile');
   cards.forEach(card => {
-    // If no buy/cart buttons exist, inject them
-    if (!card.querySelector('.storybook-actions') && !card.querySelector('.buy-btn')) {
+    syncCardDataset(card);
+
+    if (!card.querySelector('.wishlist-top')) {
+      const wishlistBtn = document.createElement('button');
+      wishlistBtn.type = 'button';
+      wishlistBtn.className = 'wishlist-top';
+      wishlistBtn.setAttribute('aria-label', 'Add to wishlist');
+      wishlistBtn.innerHTML = '&#9825;';
+      card.prepend(wishlistBtn);
+    }
+
+    if (!card.querySelector('.storybook-actions')) {
       const actions = document.createElement('div');
       actions.className = 'storybook-actions';
-      actions.style.marginTop = '15px';
       actions.innerHTML = `
-        <button type="button" class="storybook-btn buy-btn" style="padding: 8px 16px; font-size: 13px;">Buy Now</button>
-        <button type="button" class="storybook-btn cart-btn" style="padding: 8px 16px; font-size: 13px;">Add to Cart</button>
+        <button type="button" class="storybook-btn buy-btn">Buy Now</button>
+        <button type="button" class="storybook-btn cart-btn">Add to Cart</button>
       `;
       card.appendChild(actions);
     }
+
+    const buyBtn = card.querySelector('.buy-btn');
+    if (buyBtn && buyBtn.textContent.trim() !== 'Buy Now') {
+      buyBtn.textContent = 'Buy Now';
+    }
+
+    bindCardActions(card);
   });
 }
 

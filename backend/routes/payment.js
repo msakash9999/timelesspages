@@ -9,8 +9,8 @@ module.exports = function (app, requireUser) {
 
   // 1. Create Stripe Checkout Session
   router.post("/create-checkout-session", requireUser, async (req, res) => {
-    console.log("Create Checkout Session Request Received");
     try {
+      console.log("[Payment] Create Checkout Session Request Received");
       const { items, shippingDetails } = req.body;
       if (!items || items.length === 0) return res.status(400).json({ message: "Cart is empty" });
 
