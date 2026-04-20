@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
 :root {
     --bg: #dcdcdc;
     --panel: #f2f2f2;
@@ -9,12 +11,13 @@
 
 * {
     box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
 }
 
 body {
     margin: 0;
     min-height: 100vh;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Poppins', sans-serif;
     background: var(--bg);
     color: var(--text);
     padding: 40px;
@@ -249,13 +252,11 @@ body.cart-open {
     inset: 56px 0 0;
     border-radius: 48px;
     background:
-        repeating-linear-gradient(
-            to right,
+        repeating-linear-gradient(to right,
             rgba(255, 255, 255, 0.24) 0,
             rgba(255, 255, 255, 0.24) 1px,
             transparent 1px,
-            transparent 98px
-        ),
+            transparent 98px),
         var(--chip);
     animation: fadeScaleIn 650ms ease-out 260ms both;
 }
@@ -319,15 +320,22 @@ body.cart-open {
 }
 
 @media (max-width: 1200px) {
-    .product-grid { grid-template-columns: repeat(3, 1fr); }
+    .product-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 @media (max-width: 900px) {
-    .product-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
 }
 
 @media (max-width: 500px) {
-    .product-grid { grid-template-columns: 1fr; }
+    .product-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .product-card {
@@ -394,56 +402,123 @@ body.cart-open {
     color: #d25a2d;
 }
 
-.product-card:nth-child(1) { animation-delay: 460ms; }
-.product-card:nth-child(2) { animation-delay: 560ms; }
-.product-card:nth-child(3) { animation-delay: 660ms; }
+.product-card:nth-child(1) {
+    animation-delay: 460ms;
+}
+
+.product-card:nth-child(2) {
+    animation-delay: 560ms;
+}
+
+.product-card:nth-child(3) {
+    animation-delay: 660ms;
+}
 
 .featured:hover .featured-book {
     transform: translate(-50%, -52%) rotate(-14deg);
 }
 
 @keyframes shellIn {
-    from { opacity: 0; transform: translateY(14px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes fadeSlideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes fadeSlideUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes fadeScaleIn {
-    from { opacity: 0; transform: scale(0.96); }
-    to { opacity: 1; transform: scale(1); }
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 @keyframes bookIn {
-    from { opacity: 0; transform: translate(-46%, -45%) rotate(-10deg) scale(0.92); }
-    to { opacity: 1; transform: translate(-50%, -50%) rotate(-16deg) scale(1); }
+    from {
+        opacity: 0;
+        transform: translate(-46%, -45%) rotate(-10deg) scale(0.92);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(-16deg) scale(1);
+    }
 }
 
 @keyframes bookFloat {
-    0%, 100% { transform: translate(-50%, -50%) rotate(-16deg); }
-    50% { transform: translate(-50%, -52%) rotate(-15deg); }
+
+    0%,
+    100% {
+        transform: translate(-50%, -50%) rotate(-16deg);
+    }
+
+    50% {
+        transform: translate(-50%, -52%) rotate(-15deg);
+    }
 }
 
 @keyframes pulseDot {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.04); }
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.04);
+    }
 }
 
 @keyframes cardIn {
-    from { opacity: 0; transform: translateY(18px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
+
+    *,
+    *::before,
+    *::after {
         animation: none !important;
         transition: none !important;
     }
@@ -752,6 +827,7 @@ body.cart-open {
         opacity: 0;
         transform: translateX(24px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -836,7 +912,7 @@ body.cart-open {
     border-radius: 20px;
     border: 1px solid #333;
     color: #f5f0eb;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
     font-family: 'Inter', sans-serif;
     animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -940,11 +1016,237 @@ body.cart-open {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes slideUp {
-    from { transform: translateY(30px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
+
+/* ── Community Banner ── */
+.community-banner {
+    max-width: 1000px;
+    margin: 60px auto;
+    padding: 60px 40px;
+    background: linear-gradient(180deg, #1a1a1a 0%, #000000 100%);
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #fff;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    border: 1px solid #333;
+    animation: fadeInScale 0.8s ease-out;
+}
+
+.community-badge {
+    padding: 8px 24px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid #444;
+    background: linear-gradient(90deg, #f58117, #efbc2f);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.community-banner h1 {
+    font-size: clamp(32px, 5vw, 48px);
+    line-height: 1.2;
+    font-weight: 700;
+    max-width: 800px;
+    margin: 0 0 20px;
+}
+
+.community-banner h1 span {
+    background: linear-gradient(90deg, #f58117, #efbc2f);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.community-banner p {
+    font-size: 16px;
+    color: #b0aaa0;
+    max-width: 600px;
+    margin-bottom: 32px;
+}
+
+.community-cta {
+    padding: 14px 48px;
+    border-radius: 999px;
+    background: transparent;
+    border: 1px solid #444;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+}
+
+.community-cta::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, #f58117, #efbc2f);
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: -1;
+}
+
+.community-cta:hover {
+    transform: scale(1.05);
+    border-color: #f58117;
+    color: #fff;
+}
+
+.community-cta:hover::before {
+    opacity: 1;
+}
+
+.community-cta:active {
+    transform: scale(0.95);
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (max-width: 768px) {
+    .community-banner {
+        margin: 40px 20px;
+        padding: 40px 24px;
+    }
+
+    .community-banner h1 {
+        font-size: 28px;
+    }
+}
+
+/* ── New Arrivals Section ── */
+.new-arrivals {
+    padding: 60px 36px;
+    background: #fff;
+    margin-top: 40px;
+    border-radius: 40px 40px 0 0;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.03);
+}
+
+.new-arrivals-head {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.new-arrivals-head h2 {
+    font-size: 3rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 8px;
+    letter-spacing: -1px;
+}
+
+.new-arrivals-head p {
+    color: #64748b;
+    font-size: 1.1rem;
+}
+
+.arrivals-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 40px;
+}
+
+.arrival-card {
+    width: 240px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    flex-direction: column;
+}
+
+.arrival-img-wrapper {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.arrival-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.arrival-card h3 {
+    margin: 16px 0 4px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #334155;
+}
+
+.arrival-price {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+/* Hover Effects */
+.arrival-card:hover {
+    transform: translateY(-8px);
+}
+
+.arrival-card:hover img {
+    transform: scale(1.08);
+}
+
+.arrival-card:hover .arrival-img-wrapper {
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+    border-color: var(--accent);
+}
+
+@media (max-width: 768px) {
+    .new-arrivals-head h2 {
+        font-size: 2.2rem;
+    }
+    .arrival-card {
+        width: calc(50% - 20px);
+    }
+}
