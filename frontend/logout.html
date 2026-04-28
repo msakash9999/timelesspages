@@ -37,24 +37,26 @@
 
     <script>
         (function logout() {
-            // Clear all TimelessPages related storage
-            const keysToRemove = [
-                'timelessPagesLoggedIn',
-                'timelessPagesUserName',
-                'timelessPagesUserEmail',
-                'timelessPagesUserToken',
-                'timelessPagesAdminToken',
-                'timelessPagesAdminEmail',
-                'timelessPagesAdminName',
-                'timelessPagesIsAdmin',
-                'timelessPagesCart',
-                'timelessPagesWishlist',
-                'tp_cart',
-                'tp_wishlist'
-            ];
+            const persistence = window.TimelessPagesUserPersistence;
 
-            keysToRemove.forEach(key => localStorage.removeItem(key));
-            sessionStorage.clear();
+            if (persistence) {
+                persistence.clearSession({ removeToken: true });
+            } else {
+                const keysToRemove = [
+                    'timelessPagesLoggedIn',
+                    'timelessPagesUserName',
+                    'timelessPagesUserEmail',
+                    'timelessPagesUserToken',
+                    'timelessPagesAdminToken',
+                    'timelessPagesAdminEmail',
+                    'timelessPagesAdminName',
+                    'timelessPagesIsAdmin'
+                ];
+
+                keysToRemove.forEach(key => localStorage.removeItem(key));
+                sessionStorage.removeItem('timelessPagesActiveUserToken');
+                sessionStorage.removeItem('timelessPagesActiveUserId');
+            }
 
             // Redirect to home/index
             setTimeout(() => {

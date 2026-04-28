@@ -66,6 +66,22 @@ const userSchema = new mongoose.Schema(
     },
     profileImage: {
       type: String
+    },
+    gender: {
+      type: String,
+      enum: ["Male", "Female", "Other", "Prefer not to say"]
+    },
+    dob: Date,
+    bio: String,
+    socialLinks: {
+      twitter: String,
+      facebook: String,
+      instagram: String,
+      linkedin: String
+    },
+    memberStatus: {
+      type: String,
+      default: "Active"
     }
   },
   {

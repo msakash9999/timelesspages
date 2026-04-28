@@ -3,6 +3,7 @@
    ════════════════════════════════════════ */
 (function () {
   'use strict';
+  const Persistence = window.TimelessPagesUserPersistence;
 
   const params = new URLSearchParams(window.location.search);
   const requestedNextPath = params.get('next') || '';
@@ -21,7 +22,7 @@
   }
 
   /* ── Redirect if already logged in ── */
-  if (localStorage.getItem('timelessPagesLoggedIn') === 'true') {
+  if ((Persistence && Persistence.isLoggedIn()) || localStorage.getItem('timelessPagesLoggedIn') === 'true') {
     window.location.href = resolveNextPath('index.html');
     return;
   }
@@ -119,15 +120,21 @@
 
   function saveUserSession(name, email, token, cart = [], wishlist = [], profileImage = '') {
     clearAdminSession();
-    localStorage.setItem('timelessPagesLoggedIn',  'true');
-    localStorage.setItem('timelessPagesUserName',  name);
-    localStorage.setItem('timelessPagesUserEmail', email);
-    localStorage.setItem('timelessPagesUserToken', token);
-    localStorage.setItem('cart', JSON.stringify(cart));
-    localStorage.setItem('timelessPagesWishlist', JSON.stringify(wishlist));
-    if (profileImage) {
-      localStorage.setItem('timelessPagesUserProfileImage', profileImage);
+    if (!Persistence) {
+      console.warn('[TimelessPages] Persistence manager not available on login page.');
+      return;
     }
+
+    Persistence.persistLoginSession({
+      token,
+      user: {
+        name,
+        email,
+        cart,
+        wishlist,
+        profileImage
+      }
+    });
   }
 
   /* ════════════════════════════════════════

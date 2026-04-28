@@ -1,4 +1,10 @@
 function getStoredUserName() {
+  const persistence = window.TimelessPagesUserPersistence;
+  if (persistence) {
+    const session = persistence.getSessionSnapshot();
+    return (session.userName || '').trim();
+  }
+
   const userName = localStorage.getItem('timelessPagesUserName');
   return userName ? userName.trim() : '';
 }

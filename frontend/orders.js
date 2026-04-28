@@ -1,6 +1,7 @@
 (function() {
     'use strict';
 
+    const Persistence = window.TimelessPagesUserPersistence;
     const ordersList = document.getElementById('ordersList');
 
     function getApiBaseCandidates() {
@@ -27,7 +28,7 @@
     }
 
     async function fetchOrders() {
-        const token = localStorage.getItem('timelessPagesUserToken');
+        const token = Persistence ? Persistence.getCurrentUserToken() : localStorage.getItem('timelessPagesUserToken');
         if (!token) {
             window.location.href = 'login.html';
             return;
@@ -53,7 +54,11 @@
                     });
 
                     if (response.status === 401) {
-                        localStorage.removeItem('timelessPagesUserToken');
+                        if (Persistence) {
+                            Persistence.clearSession({ removeToken: true });
+                        } else {
+                            localStorage.removeItem('timelessPagesUserToken');
+                        }
                         window.location.href = 'login.html';
                         return;
                     }
@@ -61,6 +66,9 @@
                     if (response.ok) {
                         const orders = await response.json();
                         localStorage.setItem("timelessPagesApiBaseUrl", baseUrl);
+                        if (Persistence) {
+                            Persistence.saveOrders(orders);
+                        }
                         renderOrders(orders);
                         success = true;
                         break;

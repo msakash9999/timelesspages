@@ -1,8 +1,7 @@
-const CART_STORAGE_KEY = 'timelessPagesCart';
-const WISHLIST_STORAGE_KEY = 'timelessPagesWishlist';
+const Persistence = window.TimelessPagesUserPersistence;
 
 function requireAuthForActions() {
-  if (localStorage.getItem('timelessPagesLoggedIn') !== 'true') {
+  if (!Persistence || !Persistence.isLoggedIn()) {
     window.location.href = 'login.html';
     return false;
   }
@@ -14,80 +13,41 @@ function getApiBaseUrl() {
 }
 
 function syncCartToServer(cartItems) {
-  const token = localStorage.getItem('timelessPagesUserToken');
-  if (!token) return;
-
-  fetch(getApiBaseUrl() + '/api/user/cart', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + token
-    },
-    body: JSON.stringify({ cart: cartItems })
-  }).catch(err => console.error("Failed to sync cart", err));
+  if (!Persistence) return;
+  Persistence.syncCartToServer(cartItems);
 }
 
 function syncWishlistToServer(wishlistItems) {
-  const token = localStorage.getItem('timelessPagesUserToken');
-  if (!token) return;
-
-  fetch(getApiBaseUrl() + '/api/user/wishlist', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + token
-    },
-    body: JSON.stringify({ wishlist: wishlistItems })
-  }).catch(err => console.error("Failed to sync wishlist", err));
+  if (!Persistence) return;
+  Persistence.syncWishlistToServer(wishlistItems);
 }
 
 function getCart() {
-  try {
-    const storedCart = localStorage.getItem(CART_STORAGE_KEY);
-    const parsedCart = storedCart ? JSON.parse(storedCart) : [];
-
-    if (!Array.isArray(parsedCart)) {
-      return [];
-    }
-
-    return parsedCart
-      .map((item) => {
-        if (!item || typeof item !== 'object') {
-          return null;
-        }
-
-        const title = String(item.title || 'Book').trim();
-        const price = typeof item.price === 'number' ? item.price : extractPriceValue(item.price || '');
-        const priceLabel = item.priceLabel || formatPrice(price);
-        const image = item.image || '';
-        const qty = Math.max(1, Number(item.qty) || 1);
-
-        return { title, price, priceLabel, image, qty };
-      })
-      .filter(Boolean);
-  } catch {
-    return [];
-  }
+  if (Persistence) return Persistence.getCart();
+  try { return JSON.parse(localStorage.getItem('timelessPagesCart') || '[]'); } catch { return []; }
 }
 
 function saveCart(cartItems) {
-  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
-  syncCartToServer(cartItems);
-}
-
-function getWishlist() {
-  try {
-    const storedWishlist = localStorage.getItem(WISHLIST_STORAGE_KEY);
-    const parsedWishlist = storedWishlist ? JSON.parse(storedWishlist) : [];
-    return Array.isArray(parsedWishlist) ? parsedWishlist : [];
-  } catch {
-    return [];
+  if (Persistence) {
+    Persistence.saveCart(cartItems);
+  } else {
+    localStorage.setItem('timelessPagesCart', JSON.stringify(cartItems));
+    syncCartToServer(cartItems);
   }
 }
 
+function getWishlist() {
+  if (Persistence) return Persistence.getWishlist();
+  try { return JSON.parse(localStorage.getItem('timelessPagesWishlist') || '[]'); } catch { return []; }
+}
+
 function saveWishlist(wishlistItems) {
-  localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(wishlistItems));
-  syncWishlistToServer(wishlistItems);
+  if (Persistence) {
+    Persistence.saveWishlist(wishlistItems);
+  } else {
+    localStorage.setItem('timelessPagesWishlist', JSON.stringify(wishlistItems));
+    syncWishlistToServer(wishlistItems);
+  }
 }
 
 function extractPriceValue(priceText) {
@@ -380,7 +340,7 @@ function createCartDrawer() {
 
     try {
       const amount = cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
-      const token = localStorage.getItem('timelessPagesUserToken');
+      const token = Persistence ? Persistence.getCurrentUserToken() : localStorage.getItem('timelessPagesUserToken');
 
       // Fetch user profile to get saved addresses
       const userRes = await fetch(getApiBaseUrl() + '/api/user/profile', {

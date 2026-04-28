@@ -11,6 +11,9 @@ const User = require("./models/User");
 const Admin = require("./models/Admin");
 const Book = require("./models/Book");
 const Seller = require("./models/Seller");
+const Address = require("./models/Address");
+const LoginHistory = require("./models/LoginHistory");
+const DashboardStats = require("./models/DashboardStats");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { sendEmail } = require("./utils/mailer");
@@ -454,10 +457,12 @@ app.get("/health", (req, res) => {
 
 const paymentRoutes = require("./routes/payment");
 const orderRoutes = require("./routes/order");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 
 app.use("/api/payment", paymentRoutes(app, requireUser));
 app.use("/api/order", orderRoutes(app, requireUser));
 app.use("/api/orders", orderRoutes(app, requireUser)); // Fallback alias for robustness
+app.use("/api/user", dashboardRoutes(requireUser));
 
 app.post("/api/auth/register", async (req, res) => {
   try {
@@ -563,6 +568,23 @@ app.post("/api/auth/login", async (req, res) => {
     }
 
     const token = jwt.sign({ userId: user._id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
+
+    // Track Login History
+    try {
+      const forwardedFor = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+      const ipAddress = forwardedFor || req.socket?.remoteAddress || req.ip || "Unknown";
+      const userAgent = String(req.headers["user-agent"] || "Unknown device");
+      
+      await LoginHistory.create({
+        userId: user._id,
+        ipAddress,
+        userAgent,
+        // Simple device detection
+        device: userAgent.includes("Mobile") ? "Mobile" : "Desktop"
+      });
+    } catch (historyErr) {
+      console.error("Failed to log login history:", historyErr.message);
+    }
 
     sendLoginAlertEmail(user, req).catch((error) => {
       console.error("Login alert email failed:", error.message);
@@ -1028,10 +1050,6 @@ app.delete("/books/:id", requireAdminOrSeller, async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

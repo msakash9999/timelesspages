@@ -65,9 +65,15 @@
     <p>Thank you for your purchase from TimelessPages. Your order has been placed and a receipt has been sent to your email.</p>
     <a href="index.html" class="btn">Back to Home</a>
   </div>
+  <script src="userPersistenceManager.js"></script>
   <script>
-    // Clear cart on success
-    localStorage.setItem('cart', '[]');
+    // Clear the active user's cart on success without touching other accounts
+    const persistence = window.TimelessPagesUserPersistence;
+    if (persistence) {
+      persistence.saveCart([]);
+    } else {
+      localStorage.setItem('cart', '[]');
+    }
   </script>
 </body>
 </html>

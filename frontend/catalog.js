@@ -1,3 +1,5 @@
+const Persistence = window.TimelessPagesUserPersistence;
+
 function getApiBaseCandidates() {
   const savedApiBaseUrl = localStorage.getItem("timelessPagesApiBaseUrl");
   const { protocol, hostname, port, origin } = window.location;
@@ -58,6 +60,21 @@ async function requestJson(path, options = {}) {
 }
 
 function getUserSession() {
+  if (Persistence) {
+    const session = Persistence.getSessionSnapshot();
+    const adminName = localStorage.getItem("timelessPagesAdminName") || "";
+    const adminToken = localStorage.getItem("timelessPagesAdminToken") || "";
+    const isAdminLoggedIn = localStorage.getItem("timelessPagesIsAdmin") === "true" && Boolean(adminToken);
+
+    return {
+      userName: session.userName || "",
+      adminName,
+      adminToken,
+      isUserLoggedIn: session.isLoggedIn,
+      isAdminLoggedIn
+    };
+  }
+
   const userName = localStorage.getItem("timelessPagesUserName") || "";
   const adminName = localStorage.getItem("timelessPagesAdminName") || "";
   const adminToken = localStorage.getItem("timelessPagesAdminToken") || "";
@@ -74,22 +91,23 @@ function getUserSession() {
 }
 
 function clearAllSessions() {
-  const keysToRemove = [
-    "timelessPagesLoggedIn",
-    "timelessPagesUserName",
-    "timelessPagesUserEmail",
-    "timelessPagesUserToken",
-    "timelessPagesAdminToken",
-    "timelessPagesAdminEmail",
-    "timelessPagesAdminName",
-    "timelessPagesIsAdmin",
-    "timelessPagesCart",
-    "timelessPagesWishlist",
-    "tp_cart",
-    "tp_wishlist"
-  ];
-  keysToRemove.forEach(k => localStorage.removeItem(k));
-  sessionStorage.clear();
+  if (Persistence) {
+    Persistence.clearSession({ removeToken: true });
+  } else {
+    const keysToRemove = [
+      "timelessPagesLoggedIn",
+      "timelessPagesUserName",
+      "timelessPagesUserEmail",
+      "timelessPagesUserToken",
+      "timelessPagesAdminToken",
+      "timelessPagesAdminEmail",
+      "timelessPagesAdminName",
+      "timelessPagesIsAdmin"
+    ];
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+    sessionStorage.removeItem("timelessPagesActiveUserToken");
+    sessionStorage.removeItem("timelessPagesActiveUserId");
+  }
 }
 
 async function requestLogout(path) {
@@ -273,19 +291,17 @@ async function loadBooks() {
   });
 }
 
-const CART_KEY = 'cart';
-const WISH_KEY = 'tp_wishlist';
-
 function getCart() {
-  try {
-    return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
-  } catch {
-    return [];
-  }
+  if (Persistence) return Persistence.getCart();
+  try { return JSON.parse(localStorage.getItem('cart') || '[]'); } catch { return []; }
 }
 
 function saveCart(cart) {
-  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  if (Persistence) {
+    Persistence.saveCart(cart);
+  } else {
+    localStorage.setItem('cart', JSON.stringify(cart));
+  }
   updateCartBadge();
 }
 
@@ -294,8 +310,17 @@ function removeFromCart(id) {
   saveCart(cart);
   renderCartDrawer();
 }
-function getWishlist() { try { return JSON.parse(localStorage.getItem(WISH_KEY) || '[]'); } catch { return []; } }
-function saveWishlist(list) { localStorage.setItem(WISH_KEY, JSON.stringify(list)); }
+function getWishlist() {
+  if (Persistence) return Persistence.getWishlist();
+  try { return JSON.parse(localStorage.getItem('tp_wishlist') || '[]'); } catch { return []; }
+}
+function saveWishlist(list) {
+  if (Persistence) {
+    Persistence.saveWishlist(list);
+  } else {
+    localStorage.setItem('tp_wishlist', JSON.stringify(list));
+  }
+}
 
 function bookFromCard(card) {
   if (!card) return null;
@@ -586,7 +611,7 @@ function injectCartDrawer() {
       return;
     }
 
-    if (localStorage.getItem('timelessPagesLoggedIn') !== 'true') {
+    if (!Persistence || !Persistence.isLoggedIn()) {
       showToast('Please login to checkout', 'wish');
       setTimeout(() => { window.location.href = 'login.html'; }, 1000);
       return;
@@ -711,7 +736,7 @@ function injectCartDrawer() {
     btn.disabled = true;
 
     try {
-      const token = localStorage.getItem('timelessPagesUserToken');
+      const token = Persistence ? Persistence.getCurrentUserToken() : localStorage.getItem('timelessPagesUserToken');
       // If running on localhost:5000, use relative URL. Else use the stored apiBase or fallback to :5000
       let apiBase = localStorage.getItem("timelessPagesApiBaseUrl") || "";
       if (!apiBase && window.location.port !== "5000") {

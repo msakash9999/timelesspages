@@ -22,6 +22,18 @@
             
             <nav class="sidebar-nav">
                 <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="home">
+                        <i data-lucide="layout-dashboard"></i>
+                        Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="account">
+                        <i data-lucide="user-check"></i>
+                        Account
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="#" class="nav-link active" data-section="profile">
                         <i data-lucide="user"></i>
                         My Profile
@@ -60,6 +72,33 @@
             <div class="breadcrumbs" id="dashboardBreadcrumbs">
                 Home <span>/</span> Account <span>/</span> <span id="currentBreadcrumb">My Profile</span>
             </div>
+
+            <!-- SECTION: HOME -->
+            <section id="section-home" class="dashboard-section" style="display: none;">
+                <div class="content-header">
+                    <h1>Dashboard Home</h1>
+                    <p id="welcomeMsg">Welcome back!</p>
+                </div>
+                <div class="stats-grid" id="homeStats">
+                    <!-- Stats will be loaded here -->
+                </div>
+                <div class="info-section">
+                    <h3>Recent Activity</h3>
+                    <div id="recentActivityList">Loading...</div>
+                </div>
+            </section>
+
+            <!-- SECTION: ACCOUNT -->
+            <section id="section-account" class="dashboard-section" style="display: none;">
+                <div class="content-header">
+                    <h1>Account Details</h1>
+                </div>
+                <div class="panel-card">
+                    <div class="info-grid" id="accountDetailsGrid">
+                        <!-- Account details here -->
+                    </div>
+                </div>
+            </section>
 
             <!-- SECTION: PROFILE -->
             <section id="section-profile" class="dashboard-section active">
@@ -102,8 +141,8 @@
                             <div class="stat-value" id="statOrdersCount">0</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-label">Rewards</div>
-                            <div class="stat-value rewards">450</div>
+                            <div class="stat-label">Profile Strength</div>
+                            <div class="stat-value" id="profileStrength">0%</div>
                         </div>
                     </div>
                 </section>
@@ -116,7 +155,7 @@
                             <label>Full Name</label>
                             <div class="input-wrapper">
                                 <i data-lucide="user"></i>
-                                <input type="text" id="inputName" value="Jane Doe" readonly>
+                                <input type="text" id="inputName" value="" readonly>
                             </div>
                         </div>
                         
@@ -124,7 +163,7 @@
                             <label>Email Address</label>
                             <div class="input-wrapper">
                                 <i data-lucide="mail"></i>
-                                <input type="email" id="inputEmail" value="jane@example.com" readonly>
+                                <input type="email" id="inputEmail" value="" readonly>
                             </div>
                         </div>
 
@@ -132,7 +171,30 @@
                             <label>Phone Number</label>
                             <div class="input-wrapper">
                                 <i data-lucide="phone"></i>
-                                <input type="tel" id="inputPhone" value="+1 (555) 123-4567" readonly>
+                                <input type="tel" id="inputPhone" value="" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="extraProfileFields" style="display: none;">
+                        <h3 style="margin-top: 20px;">Additional Info</h3>
+                        <div class="info-grid">
+                            <div class="input-group">
+                                <label>Gender</label>
+                                <select id="inputGender" disabled>
+                                    <option value="">Select</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Date of Birth</label>
+                                <input type="date" id="inputDob" readonly>
+                            </div>
+                            <div class="input-group" style="grid-column: span 2;">
+                                <label>Bio</label>
+                                <textarea id="inputBio" readonly style="width: 100%; min-height: 80px; border: 1px solid #eee; border-radius: 8px; padding: 10px;"></textarea>
                             </div>
                         </div>
                     </div>
@@ -161,26 +223,42 @@
                         <h1>My Addresses</h1>
                         <p>Manage your shipping and billing locations.</p>
                     </div>
-                    <button class="edit-profile-btn" style="background: var(--primary); color: #fff; border: 0;">Add New Address</button>
+                    <button class="edit-profile-btn" id="addNewAddressBtn" style="background: var(--primary); color: #fff; border: 0;">Add New Address</button>
                 </div>
-                <div class="info-grid">
-                    <div class="panel-card" style="padding: 24px; border: 1px solid #eee; border-radius: 16px; position: relative;">
-                        <span style="position: absolute; top: 16px; right: 16px; font-size: 11px; background: #e8f5e9; color: #1b5e20; padding: 4px 10px; border-radius: 99px; font-weight: 600;">DEFAULT</span>
-                        <h3 style="margin-bottom: 10px;">Home Address</h3>
-                        <p style="color: #666; font-size: 14px; line-height: 1.6;">
-                            123 Library Lane,<br>
-                            Storybrooke, ME 04011<br>
-                            United States
-                        </p>
-                        <div style="margin-top: 20px; display: flex; gap: 15px;">
-                            <a href="#" style="font-size: 13px; color: var(--primary); font-weight: 600; text-decoration: none;">Edit</a>
-                            <a href="#" style="font-size: 13px; color: #e74c3c; font-weight: 600; text-decoration: none;">Remove</a>
-                        </div>
-                    </div>
-                    <div style="border: 2px dashed #eee; border-radius: 16px; display: grid; place-items: center; min-height: 180px; cursor: pointer; color: #aaa; transition: all 0.2s;" onmouseover="this.style.borderColor=var(--primary); this.style.color=var(--primary)" onmouseout="this.style.borderColor='#eee'; this.style.color='#aaa'">
-                        <div style="text-align: center;">
-                            <i data-lucide="plus" style="width: 32px; height: 32px; margin-bottom: 8px;"></i>
-                            <p style="font-size: 14px; font-weight: 500;">Add another address</p>
+                <div class="info-grid" id="addressGrid">
+                    <!-- Addresses loaded here -->
+                </div>
+
+                <!-- Add/Edit Address Form (Hidden Modal style) -->
+                <div id="addressFormModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+                    <div class="panel-card" style="background: #fff; max-width: 500px; width: 100%; padding: 24px; border-radius: 16px;">
+                        <h2 id="addressModalTitle">Add New Address</h2>
+                        <div class="admin-form" style="display: grid; gap: 10px; margin-top: 15px;">
+                            <input type="text" id="addrFullName" placeholder="Full Name" required>
+                            <input type="tel" id="addrPhone" placeholder="Phone Number" required>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="addrHouse" placeholder="House/Flat No." required>
+                                <input type="text" id="addrStreet" placeholder="Street/Area" required>
+                            </div>
+                            <input type="text" id="addrLandmark" placeholder="Landmark (Optional)">
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="addrCity" placeholder="City" required>
+                                <input type="text" id="addrState" placeholder="State" required>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="addrPincode" placeholder="Pincode" required>
+                                <select id="addrType">
+                                    <option value="Home">Home</option>
+                                    <option value="Office">Office</option>
+                                </select>
+                            </div>
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; margin-top: 5px;">
+                                <input type="checkbox" id="addrDefault"> Set as default address
+                            </label>
+                            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                <button id="saveAddressBtn" style="flex: 1; padding: 12px; background: var(--primary); color: #fff; border: 0; border-radius: 8px; font-weight: 600;">Save Address</button>
+                                <button id="closeAddressBtn" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-weight: 600;">Cancel</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -196,23 +274,38 @@
                 </div>
                 <div class="info-section">
                     <div style="display: grid; gap: 20px;">
+                        <!-- Change Password -->
+                        <div class="panel-card" style="padding: 20px;">
+                            <h4>Security Settings</h4>
+                            <div style="display: grid; gap: 10px; margin-top: 10px;">
+                                <input type="password" id="currentPass" placeholder="Current Password" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                                <input type="password" id="newPass" placeholder="New Password" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                                <button id="changePassBtn" style="padding: 10px; background: #333; color: #fff; border: 0; border-radius: 8px;">Update Password</button>
+                            </div>
+                        </div>
+
+                        <!-- Sessions -->
                         <div style="padding: 20px; border: 1px solid #eee; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
                             <div>
-                                <h4 style="margin-bottom: 4px;">Email Notifications</h4>
-                                <p style="font-size: 13px; color: #666;">Receive updates about your orders and book recommendations.</p>
+                                <h4 style="margin-bottom: 4px;">Session Management</h4>
+                                <p style="font-size: 13px; color: #666;">Logout from all other active sessions and devices.</p>
                             </div>
-                            <label style="position: relative; display: inline-block; width: 50px; height: 26px;">
-                                <input type="checkbox" checked style="opacity: 0; width: 0; height: 0;">
-                                <span style="position: absolute; cursor: pointer; inset: 0; background-color: var(--primary); transition: .4s; border-radius: 34px;"></span>
-                                <span style="position: absolute; content: ''; height: 18px; width: 18px; left: 28px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;"></span>
-                            </label>
+                            <button id="logoutAllBtn" style="padding: 8px 16px; border: 1px solid #333; border-radius: 6px; font-size: 13px; font-weight: 600;">Logout All Devices</button>
                         </div>
+
+                        <!-- Data cleanup -->
+                        <div style="padding: 20px; border: 1px solid #eee; border-radius: 12px; display: flex; gap: 10px;">
+                            <button id="clearCartBtn" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px;">Clear Cart</button>
+                            <button id="clearWishlistBtn" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px;">Clear Wishlist</button>
+                        </div>
+
+                        <!-- Danger Zone -->
                         <div style="padding: 20px; border: 1px solid #fdeaea; background: #fffafb; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
                             <div>
                                 <h4 style="margin-bottom: 4px; color: #e74c3c;">Danger Zone</h4>
                                 <p style="font-size: 13px; color: #666;">Permanently delete your account and all your data.</p>
                             </div>
-                            <button style="padding: 8px 16px; background: #e74c3c; color: #fff; border: 0; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">Delete Account</button>
+                            <button id="deleteAccountBtn" style="padding: 8px 16px; background: #e74c3c; color: #fff; border: 0; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">Delete Account</button>
                         </div>
                     </div>
                 </div>
@@ -220,11 +313,18 @@
         </main>
     </div>
 
+    <script src="userPersistenceManager.js"></script>
     <script>
-        // Initialize Icons
+        // --- INITIALIZATION ---
         lucide.createIcons();
+        const Persistence = window.TimelessPagesUserPersistence;
+        const token = Persistence ? Persistence.getCurrentUserToken() : localStorage.getItem("timelessPagesUserToken");
 
-        // ── NAVIGATION LOGIC ──
+        if (!token) {
+            window.location.href = "login.html";
+        }
+
+        // --- NAVIGATION ---
         const navLinks = document.querySelectorAll('.nav-link[data-section]');
         const sections = document.querySelectorAll('.dashboard-section');
         const currentBreadcrumb = document.getElementById('currentBreadcrumb');
@@ -232,349 +332,352 @@
         navLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
-                const targetSection = link.getAttribute('data-section');
+                const target = link.getAttribute('data-section');
                 
-                // Update Sidebar
                 navLinks.forEach(l => l.classList.remove('active'));
                 link.classList.add('active');
 
-                // Switch Sections
                 sections.forEach(sec => sec.style.display = 'none');
-                document.getElementById(`section-${targetSection}`).style.display = 'block';
+                document.getElementById(`section-${target}`).style.display = 'block';
 
-                // Update Breadcrumb
                 currentBreadcrumb.textContent = link.textContent.trim();
-
-                // Load Data if needed
-                if (targetSection === 'orders') {
-                    fetchOrders();
-                }
+                
+                loadSectionData(target);
             });
         });
 
-        // ── PROFILE LOGIC ──
+        function loadSectionData(section) {
+            switch(section) {
+                case 'home': fetchHomeSummary(); break;
+                case 'account': fetchAccountDetails(); break;
+                case 'profile': fetchProfile(); break;
+                case 'orders': fetchOrders(); break;
+                case 'addresses': fetchAddresses(); break;
+            }
+        }
+
+        // --- API HELPERS ---
+        function getApiBase() {
+            return "http://localhost:5000";
+        }
+
+        async function apiFetch(endpoint, options = {}) {
+            const url = `${getApiBase()}${endpoint}`;
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+            try {
+                const response = await fetch(url, { ...options, headers });
+                if (response.status === 401) window.location.href = "login.html";
+                return await response.json();
+            } catch (err) {
+                console.error("API Fetch Error:", err);
+                throw err;
+            }
+        }
+
+        // --- HOME MODULE ---
+        async function fetchHomeSummary() {
+            try {
+                const data = await apiFetch('/api/user/summary');
+                document.getElementById('welcomeMsg').textContent = data.welcomeMessage;
+                document.getElementById('homeStats').innerHTML = `
+                    <div class="panel-card" style="padding: 20px; text-align: center;">
+                        <h2 style="font-size: 32px; color: var(--primary);">${data.stats.totalOrders}</h2>
+                        <p style="font-size: 14px; color: #666;">Total Orders</p>
+                    </div>
+                    <div class="panel-card" style="padding: 20px; text-align: center;">
+                        <h2 style="font-size: 32px; color: var(--primary);">${data.stats.wishlistCount}</h2>
+                        <p style="font-size: 14px; color: #666;">In Wishlist</p>
+                    </div>
+                    <div class="panel-card" style="padding: 20px; text-align: center;">
+                        <h2 style="font-size: 32px; color: var(--primary);">${data.stats.savedAddressesCount}</h2>
+                        <p style="font-size: 14px; color: #666;">Saved Addresses</p>
+                    </div>
+                `;
+                document.getElementById('recentActivityList').innerHTML = data.recentActivity.map(act => `
+                    <div style="padding: 10px; border-bottom: 1px solid #eee; font-size: 14px;">
+                        Placed order <strong>#${act._id.slice(-6).toUpperCase()}</strong> on ${new Date(act.createdAt).toLocaleDateString()}
+                    </div>
+                `).join('') || "No recent activity";
+            } catch (err) {}
+        }
+
+        // --- ACCOUNT MODULE ---
+        async function fetchAccountDetails() {
+            try {
+                const data = await apiFetch('/api/user/account');
+                document.getElementById('accountDetailsGrid').innerHTML = `
+                    <div class="input-group"><label>Username</label><p style="padding: 10px; background: #f9f9f9; border-radius: 8px;">${data.username}</p></div>
+                    <div class="input-group"><label>Email</label><p style="padding: 10px; background: #f9f9f9; border-radius: 8px;">${data.email}</p></div>
+                    <div class="input-group"><label>Phone</label><p style="padding: 10px; background: #f9f9f9; border-radius: 8px;">${data.phone}</p></div>
+                    <div class="input-group"><label>Member Since</label><p style="padding: 10px; background: #f9f9f9; border-radius: 8px;">${new Date(data.memberSince).toLocaleDateString()}</p></div>
+                    <div class="input-group"><label>Account ID</label><p style="font-family: monospace; font-size: 12px; padding: 10px; background: #f9f9f9; border-radius: 8px;">${data.accountId}</p></div>
+                `;
+            } catch (err) {}
+        }
+
+        // --- PROFILE MODULE ---
         let isEditMode = false;
         const editBtn = document.getElementById('editBtn');
         const cancelBtn = document.getElementById('cancelBtn');
-        const inputs = ['inputName', 'inputEmail', 'inputPhone'];
 
-        async function loadUserData() {
-            console.log("Checking backend connection...");
-            const candidates = getApiBaseCandidates();
-            candidates.forEach(c => console.log("API Candidate:", c));
-
+        async function fetchProfile() {
             try {
-                // 1. Instant Load from Cache
-                const cachedName = localStorage.getItem("timelessPagesUserName");
-                const cachedEmail = localStorage.getItem("timelessPagesUserEmail");
-                const cachedImage = localStorage.getItem("timelessPagesUserProfileImage");
-                
-                if (cachedName) {
-                    document.getElementById('displayUserName').textContent = cachedName;
-                    document.getElementById('inputName').value = cachedName;
-                }
-                if (cachedEmail) {
-                    document.getElementById('displayUserEmail').textContent = cachedEmail;
-                    document.getElementById('inputEmail').value = cachedEmail;
-                }
-                if (cachedImage) {
-                    document.getElementById('userAvatar').src = cachedImage;
-                }
-
-                const token = localStorage.getItem("timelessPagesUserToken");
-                if (!token) return;
-
-                // 2. Fetch fresh data from API
-                const candidates = getApiBaseCandidates();
-                for (const baseUrl of candidates) {
-                    try {
-                        const response = await fetch(`${baseUrl}/api/user/profile`, {
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        });
-                        if (response.ok) {
-                            const user = await response.json();
-                            console.log("DEBUG: Full Profile Data from Server:", user); 
-                            
-                            document.getElementById('displayUserName').textContent = user.name;
-                            document.getElementById('displayUserEmail').textContent = user.email;
-                            document.getElementById('inputName').value = user.name;
-                            document.getElementById('inputEmail').value = user.email;
-                            document.getElementById('inputPhone').value = user.phone || "";
-                            
-                            localStorage.setItem("timelessPagesUserName", user.name);
-                            localStorage.setItem("timelessPagesUserEmail", user.email);
-                            
-                            if (user.profileImage) {
-                                console.log("Applying stored avatar:", user.profileImage);
-                                document.getElementById('userAvatar').src = user.profileImage;
-                                localStorage.setItem("timelessPagesUserProfileImage", user.profileImage);
-                            } else {
-                                console.log("No avatar found, using default.");
-                                document.getElementById('userAvatar').src = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200";
-                                localStorage.removeItem("timelessPagesUserProfileImage");
-                            }
-                            return;
-                        }
-                    } catch (e) {
-                        console.warn("Fetch attempt failed for:", baseUrl);
-                    }
-                }
-            } catch (err) {
-                console.error("Critical error in loadUserData:", err);
-            }
-        }
-
-        // ── AVATAR UPLOAD LOGIC ──
-        const avatarContainer = document.getElementById('avatarContainer');
-        const avatarInput = document.getElementById('avatarInput');
-        const userAvatar = document.getElementById('userAvatar');
-
-        avatarContainer.addEventListener('mouseenter', () => {
-            avatarContainer.querySelector('.avatar-overlay').style.opacity = '1';
-        });
-        avatarContainer.addEventListener('mouseleave', () => {
-            avatarContainer.querySelector('.avatar-overlay').style.opacity = '0';
-        });
-
-        avatarContainer.addEventListener('click', () => {
-            avatarInput.click();
-        });
-
-        avatarInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            // Show local preview immediately
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                userAvatar.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-
-            // Upload to server
-            const token = localStorage.getItem("timelessPagesUserToken");
-            if (!token) return;
-
-            const formData = new FormData();
-            formData.append('image', file);
-
-            const candidates = getApiBaseCandidates();
-            let uploadSuccess = false;
-            let lastServerError = null;
-
-            for (const baseUrl of candidates) {
-                try {
-                    console.log(`Trying upload to: ${baseUrl}/api/user/avatar`);
-                    const response = await fetch(`${baseUrl}/api/user/avatar`, {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${token}` },
-                        body: formData
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        userAvatar.src = data.imageUrl;
-                        localStorage.setItem("timelessPagesUserProfileImage", data.imageUrl);
-                        uploadSuccess = true;
-                        alert("Profile picture updated!");
-                        break;
-                    } else {
-                        // If server responded but with an error, capture it
-                        const errorData = await response.json().catch(() => ({}));
-                        lastServerError = errorData.message || `Server responded with ${response.status}`;
-                    }
-                } catch (err) {
-                    console.warn(`Connection attempt failed for ${baseUrl}:`, err);
-                }
-            }
-
-            if (!uploadSuccess) {
-                const finalMsg = lastServerError 
-                    ? `Upload failed: ${lastServerError}`
-                    : "Failed to connect to any known backend server. Please ensure the backend is running on port 5000.";
-                alert(finalMsg);
-            }
-        });
-
-        // ── ORDERS LOGIC (Ported from orders.js) ──
-        const ordersList = document.getElementById('ordersList');
-
-        function getApiBaseCandidates() {
-            const savedApiBaseUrl = localStorage.getItem("timelessPagesApiBaseUrl");
-            const { protocol, hostname, port, origin } = window.location;
-            const priorityCandidates = ["http://localhost:5000", "http://127.0.0.1:5000"];
-            if (savedApiBaseUrl) priorityCandidates.push(savedApiBaseUrl.replace(/\/$/, ""));
-            if (hostname) priorityCandidates.push(`${protocol}//${hostname}:5000`);
-            return [...new Set(priorityCandidates)];
-        }
-
-        async function fetchOrders() {
-            const token = localStorage.getItem('timelessPagesUserToken');
-            if (!token) return;
-
-            const candidates = getApiBaseCandidates();
-            let lastError = null;
-
-            for (const baseUrl of candidates) {
-                try {
-                    const response = await fetch(`${baseUrl}/api/order/my-orders`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-
-                    if (response.ok) {
-                        const orders = await response.json();
-                        document.getElementById('statOrdersCount').textContent = orders.length;
-                        renderOrders(orders);
-                        return;
-                    }
-                } catch (error) {
-                    lastError = error;
-                }
-            }
-
-            ordersList.innerHTML = `<div style="text-align:center; padding:20px; color:#e74c3c">Failed to load orders. Please try again later.</div>`;
-        }
-
-        function renderOrders(orders) {
-            if (!orders || orders.length === 0) {
-                ordersList.innerHTML = `<div style="text-align:center; padding:40px; border:1px dashed #eee; border-radius:12px;">No orders found yet.</div>`;
-                return;
-            }
-
-            const allProducts = [];
-            orders.forEach(order => {
-                (order.products || []).forEach(item => {
-                    allProducts.push({
-                        ...item,
-                        orderId: order._id.slice(-8).toUpperCase(),
-                        date: new Date(order.createdAt).toLocaleDateString()
-                    });
-                });
-            });
-
-            ordersList.innerHTML = `
-                <div class="w-full mt-4">
-                    <div class="overflow-hidden rounded-xl bg-white border border-gray-200 shadow-sm">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50 text-gray-900 text-xs font-semibold uppercase tracking-wider">
-                                <tr>
-                                    <th class="px-6 py-4">Product</th>
-                                    <th class="px-6 py-4">Price</th>
-                                    <th class="px-6 py-4">Order Info</th>
-                                    <th class="px-6 py-4 text-center">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-sm text-gray-600 divide-y divide-gray-100">
-                                ${allProducts.map(p => `
-                                    <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-6 py-4 flex items-center gap-4">
-                                            <div class="w-12 h-16 bg-gray-100 rounded border border-gray-200 overflow-hidden">
-                                                <img src="${p.image || 'assets/placeholder.png'}" class="w-full h-full object-cover">
-                                            </div>
-                                            <span class="font-medium text-gray-900">${p.title || p.name}</span>
-                                        </td>
-                                        <td class="px-6 py-4">₹${p.price}</td>
-                                        <td class="px-6 py-4">
-                                            <div class="text-xs text-gray-500">ID: #${p.orderId}</div>
-                                            <div class="text-xs text-gray-400">${p.date}</div>
-                                        </td>
-                                        <td class="px-6 py-4 text-center">
-                                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-600">Confirmed</span>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Rest of Profile actions...
-        function toggleEditMode(enable) {
-            isEditMode = enable;
-            editBtn.textContent = enable ? 'Save Changes' : 'Edit Profile';
-            editBtn.style.backgroundColor = enable ? '#2ecc71' : '';
-            editBtn.style.color = enable ? '#fff' : '';
-            cancelBtn.style.display = enable ? 'block' : 'none';
-            inputs.forEach(id => {
-                const input = document.getElementById(id);
-                input.readOnly = !enable;
-                input.style.backgroundColor = enable ? '#fff' : '';
-            });
-            if (enable) document.getElementById('inputName').focus();
+                const user = await apiFetch('/api/user/profile');
+                document.getElementById('displayUserName').textContent = user.name;
+                document.getElementById('displayUserEmail').textContent = user.email;
+                document.getElementById('inputName').value = user.name;
+                document.getElementById('inputEmail').value = user.email;
+                document.getElementById('inputPhone').value = user.phone || "";
+                document.getElementById('inputGender').value = user.gender || "";
+                document.getElementById('inputDob').value = user.dob ? user.dob.split('T')[0] : "";
+                document.getElementById('inputBio').value = user.bio || "";
+                document.getElementById('userAvatar').src = user.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200";
+            } catch (err) {}
         }
 
         editBtn.addEventListener('click', async () => {
-            if (!isEditMode) toggleEditMode(true);
-            else await saveProfile();
-        });
-
-        cancelBtn.addEventListener('click', () => {
-            toggleEditMode(false);
-            loadUserData();
-        });
-
-        async function saveProfile() {
-            const name = document.getElementById('inputName').value.trim();
-            const email = document.getElementById('inputEmail').value.trim();
-            const phone = document.getElementById('inputPhone').value.trim();
-            const token = localStorage.getItem("timelessPagesUserToken");
-            if (!token) return;
-
-            editBtn.disabled = true;
-            editBtn.textContent = 'Saving...';
-
-            try {
-                const candidates = getApiBaseCandidates();
-                let saveSuccess = false;
-                for (const baseUrl of candidates) {
-                    try {
-                        const response = await fetch(`${baseUrl}/api/user/profile`, {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                            body: JSON.stringify({ name, email, phone })
-                        });
-
-                        if (response.ok) {
-                            const data = await response.json();
-                            const user = data.user;
-                            
-                            document.getElementById('displayUserName').textContent = user.name;
-                            document.getElementById('displayUserEmail').textContent = user.email;
-                            
-                            localStorage.setItem("timelessPagesUserName", user.name);
-                            localStorage.setItem("timelessPagesUserEmail", user.email);
-                            if (user.profileImage) {
-                                localStorage.setItem("timelessPagesUserProfileImage", user.profileImage);
-                            }
-                            
-                            toggleEditMode(false);
-                            saveSuccess = true;
-                            alert("Profile updated successfully!");
-                            break;
-                        }
-                    } catch (e) {}
-                }
-                if (!saveSuccess) alert("Failed to save profile changes.");
-            } catch (err) {
-                alert("Error saving profile.");
-            } finally {
-                editBtn.disabled = false;
-                editBtn.textContent = isEditMode ? 'Save Changes' : 'Edit Profile';
+            if (!isEditMode) {
+                toggleEdit(true);
+            } else {
+                await saveProfile();
             }
+        });
+
+        cancelBtn.addEventListener('click', () => toggleEdit(false));
+
+        function toggleEdit(enable) {
+            isEditMode = enable;
+            editBtn.textContent = enable ? "Save Changes" : "Edit Profile";
+            cancelBtn.style.display = enable ? "block" : "none";
+            document.getElementById('extraProfileFields').style.display = enable ? "block" : "none";
+            ['inputName', 'inputPhone', 'inputDob', 'inputBio'].forEach(id => {
+                const el = document.getElementById(id);
+                el.readOnly = !enable;
+                el.style.background = enable ? "#fff" : "#f9f9f9";
+            });
+            document.getElementById('inputGender').disabled = !enable;
         }
 
+        async function saveProfile() {
+            const payload = {
+                name: document.getElementById('inputName').value,
+                phone: document.getElementById('inputPhone').value,
+                gender: document.getElementById('inputGender').value,
+                dob: document.getElementById('inputDob').value,
+                bio: document.getElementById('inputBio').value
+            };
+            try {
+                await apiFetch('/api/user/profile', { method: 'PUT', body: JSON.stringify(payload) });
+                alert("Profile updated!");
+                toggleEdit(false);
+                fetchProfile();
+            } catch (err) { alert("Failed to update profile"); }
+        }
+
+        // Avatar Upload
+        const avatarContainer = document.getElementById('avatarContainer');
+        const avatarInput = document.getElementById('avatarInput');
+        avatarContainer.addEventListener('click', () => avatarInput.click());
+        avatarInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const formData = new FormData();
+            formData.append('image', file);
+            try {
+                const res = await fetch(`${getApiBase()}/api/user/avatar`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                const data = await res.json();
+                document.getElementById('userAvatar').src = data.imageUrl;
+                alert("Avatar updated!");
+            } catch (err) { alert("Upload failed"); }
+        });
+
+        // --- ADDRESS MODULE ---
+        async function fetchAddresses() {
+            try {
+                const data = await apiFetch('/api/user/address');
+                document.getElementById('addressGrid').innerHTML = data.map(addr => `
+                    <div class="panel-card" style="padding: 24px; border: 1px solid ${addr.isDefault ? 'var(--primary)' : '#eee'}; position: relative;">
+                        ${addr.isDefault ? '<span style="position: absolute; top: 16px; right: 16px; font-size: 11px; background: #e8f5e9; color: #1b5e20; padding: 4px 10px; border-radius: 99px; font-weight: 600;">DEFAULT</span>' : ''}
+                        <h3>${addr.fullName} (${addr.addressType})</h3>
+                        <p style="color: #666; font-size: 14px; line-height: 1.6;">
+                            ${addr.houseNumber}, ${addr.street}<br>
+                            ${addr.landmark ? addr.landmark + '<br>' : ''}
+                            ${addr.city}, ${addr.state} - ${addr.pincode}
+                        </p>
+                        <div style="margin-top: 20px; display: flex; gap: 15px;">
+                            <button onclick="editAddress('${addr._id}')" style="background:none; border:0; color:var(--primary); font-weight:600; cursor:pointer;">Edit</button>
+                            <button onclick="deleteAddress('${addr._id}')" style="background:none; border:0; color:#e74c3c; font-weight:600; cursor:pointer;">Delete</button>
+                            ${!addr.isDefault ? `<button onclick="setDefaultAddress('${addr._id}')" style="background:none; border:0; color:#333; font-weight:600; cursor:pointer;">Set Default</button>` : ''}
+                        </div>
+                    </div>
+                `).join('') + `
+                    <div style="border: 2px dashed #eee; border-radius: 16px; display: grid; place-items: center; min-height: 180px; cursor: pointer; color: #aaa;" onclick="showAddressModal()">
+                        <div style="text-align: center;"><i data-lucide="plus"></i><p>Add New</p></div>
+                    </div>
+                `;
+                lucide.createIcons();
+            } catch (err) {}
+        }
+
+        let editingAddressId = null;
+        function showAddressModal(addr = null) {
+            editingAddressId = addr ? addr._id : null;
+            document.getElementById('addressModalTitle').textContent = addr ? "Edit Address" : "Add New Address";
+            document.getElementById('addrFullName').value = addr ? addr.fullName : "";
+            document.getElementById('addrPhone').value = addr ? addr.phone : "";
+            document.getElementById('addrHouse').value = addr ? addr.houseNumber : "";
+            document.getElementById('addrStreet').value = addr ? addr.street : "";
+            document.getElementById('addrLandmark').value = addr ? addr.landmark : "";
+            document.getElementById('addrCity').value = addr ? addr.city : "";
+            document.getElementById('addrState').value = addr ? addr.state : "";
+            document.getElementById('addrPincode').value = addr ? addr.pincode : "";
+            document.getElementById('addrType').value = addr ? addr.addressType : "Home";
+            document.getElementById('addrDefault').checked = addr ? addr.isDefault : false;
+            document.getElementById('addressFormModal').style.display = 'flex';
+        }
+
+        document.getElementById('closeAddressBtn').addEventListener('click', () => {
+            document.getElementById('addressFormModal').style.display = 'none';
+        });
+
+        document.getElementById('saveAddressBtn').addEventListener('click', async () => {
+            const payload = {
+                fullName: document.getElementById('addrFullName').value,
+                phone: document.getElementById('addrPhone').value,
+                houseNumber: document.getElementById('addrHouse').value,
+                street: document.getElementById('addrStreet').value,
+                landmark: document.getElementById('addrLandmark').value,
+                city: document.getElementById('addrCity').value,
+                state: document.getElementById('addrState').value,
+                pincode: document.getElementById('addrPincode').value,
+                addressType: document.getElementById('addrType').value,
+                isDefault: document.getElementById('addrDefault').checked
+            };
+            try {
+                if (editingAddressId) {
+                    await apiFetch(`/api/user/address/${editingAddressId}`, { method: 'PUT', body: JSON.stringify(payload) });
+                } else {
+                    await apiFetch('/api/user/address', { method: 'POST', body: JSON.stringify(payload) });
+                }
+                document.getElementById('addressFormModal').style.display = 'none';
+                fetchAddresses();
+            } catch (err) { alert("Save failed"); }
+        });
+
+        window.deleteAddress = async (id) => {
+            if (confirm("Delete this address?")) {
+                await apiFetch(`/api/user/address/${id}`, { method: 'DELETE' });
+                fetchAddresses();
+            }
+        };
+
+        window.setDefaultAddress = async (id) => {
+            await apiFetch(`/api/user/address/${id}/default`, { method: 'PATCH' });
+            fetchAddresses();
+        };
+
+        window.editAddress = async (id) => {
+            const data = await apiFetch('/api/user/address');
+            const addr = data.find(a => a._id === id);
+            showAddressModal(addr);
+        };
+
+        // --- ORDERS MODULE ---
+        async function fetchOrders() {
+            try {
+                const orders = await apiFetch('/api/order/my-orders');
+                const ordersList = document.getElementById('ordersList');
+                if (!orders.length) {
+                    ordersList.innerHTML = "<div style='text-align:center; padding:40px;'>No orders yet.</div>";
+                    return;
+                }
+
+                let productsHtml = '';
+                orders.forEach(order => {
+                    const date = new Date(order.createdAt).toLocaleDateString();
+                    order.products.forEach(item => {
+                        productsHtml += `
+                            <div class="panel-card" style="display: flex; align-items: center; gap: 20px; padding: 15px;">
+                                <img src="${item.image || item.imageUrl || 'assets/placeholder.png'}" alt="${item.title}" style="width: 70px; height: 90px; object-fit: cover; border-radius: 8px; border: 1px solid #eee;">
+                                <div style="flex: 1;">
+                                    <h4 style="font-size: 16px; margin-bottom: 4px;">${item.title}</h4>
+                                    <p style="font-size: 13px; color: #666; margin-bottom: 2px;">Order ID: #${order._id.slice(-8).toUpperCase()}</p>
+                                    <p style="font-size: 12px; color: #999;">Purchased on ${date}</p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-weight: 700; color: var(--primary); margin-bottom: 5px;">₹${item.price}</div>
+                                    <span style="font-size: 11px; background: #e8f5e9; color: #2e7d32; padding: 3px 8px; border-radius: 99px; font-weight: 600;">DELIVERED</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                });
+                ordersList.innerHTML = productsHtml;
+            } catch (err) {}
+        }
+
+        // --- SETTINGS MODULE ---
+        document.getElementById('changePassBtn').addEventListener('click', async () => {
+            const currentPassword = document.getElementById('currentPass').value;
+            const newPassword = document.getElementById('newPass').value;
+            if (!newPassword) return alert("Enter new password");
+            try {
+                await apiFetch('/api/user/settings', { method: 'PUT', body: JSON.stringify({ currentPassword, newPassword }) });
+                alert("Password updated!");
+                document.getElementById('currentPass').value = "";
+                document.getElementById('newPass').value = "";
+            } catch (err) { alert("Update failed. Check current password."); }
+        });
+
+        document.getElementById('logoutAllBtn').addEventListener('click', async () => {
+            if (confirm("Logout from all other devices?")) {
+                await apiFetch('/api/user/logout-all-devices', { method: 'POST' });
+                alert("Logged out from all other devices!");
+            }
+        });
+
+        document.getElementById('clearCartBtn').addEventListener('click', async () => {
+            if (confirm("Clear your cart?")) {
+                await apiFetch('/api/user/clear-cart', { method: 'POST' });
+                alert("Cart cleared!");
+            }
+        });
+
+        document.getElementById('clearWishlistBtn').addEventListener('click', async () => {
+            if (confirm("Clear your wishlist?")) {
+                await apiFetch('/api/user/clear-wishlist', { method: 'POST' });
+                alert("Wishlist cleared!");
+            }
+        });
+
+        document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
+            const confirmVal = prompt("Type 'DELETE' to confirm permanent account deletion:");
+            if (confirmVal === "DELETE") {
+                await apiFetch('/api/user/delete-account', { method: 'DELETE' });
+                alert("Account deleted.");
+                window.location.href = "index.html";
+            }
+        });
+
+        // --- LOGOUT ---
         document.getElementById('logoutBtn').addEventListener('click', (e) => {
             e.preventDefault();
-            localStorage.clear();
+            if (Persistence) Persistence.clearSession({ removeToken: true });
+            else localStorage.clear();
             window.location.href = "index.html";
         });
 
-        window.addEventListener('DOMContentLoaded', () => {
-            loadUserData();
-            fetchOrders(); // Initial fetch to update stats
-        });
+        // --- INITIAL LOAD ---
+        fetchProfile();
+        fetchHomeSummary();
     </script>
 </body>
 </html>
