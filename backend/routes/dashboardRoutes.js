@@ -13,6 +13,7 @@ module.exports = (requireUser) => {
   // Profile
   router.get("/profile", requireUser, profileController.getProfile);
   router.put("/profile", requireUser, profileController.updateProfile);
+  router.patch("/profile", requireUser, profileController.updateProfile);
 
   // Addresses
   router.get("/address", requireUser, addressController.getAddresses);
@@ -24,6 +25,7 @@ module.exports = (requireUser) => {
   // Settings
   router.get("/settings", requireUser, settingsController.getSettings);
   router.put("/settings", requireUser, settingsController.updateSettings);
+  router.patch("/settings", requireUser, settingsController.updateSettings);
   router.delete("/delete-account", requireUser, settingsController.deleteAccount);
   router.post("/clear-wishlist", requireUser, settingsController.clearWishlist);
   router.post("/clear-cart", requireUser, settingsController.clearCart);

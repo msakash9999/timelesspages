@@ -1,7 +1,10 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const Payment = require("../models/Payment");
 const User = require("../models/User");
+const Order = require("../models/Order");
+const Book = require("../models/Book");
 const { sendEmail } = require("../utils/mailer");
 
 module.exports = function (app, requireUser) {
@@ -11,7 +14,7 @@ module.exports = function (app, requireUser) {
   router.post("/create-checkout-session", requireUser, async (req, res) => {
     try {
       console.log("[Payment] Create Checkout Session Request Received");
-      const { items, shippingDetails } = req.body;
+      const { items, shippingDetails, advancePayment } = req.body;
       if (!items || items.length === 0) return res.status(400).json({ message: "Cart is empty" });
 
       // Build line items for Stripe
@@ -19,9 +22,9 @@ module.exports = function (app, requireUser) {
         price_data: {
           currency: "inr",
           product_data: {
-            name: item.title || "Book",
+            name: (item.title || "Book") + (advancePayment ? " (50% Advance)" : ""),
           },
-          unit_amount: Math.round(item.price * 100), // Stripe expects amounts in cents
+          unit_amount: Math.round((advancePayment ? item.price / 2 : item.price) * 100), // Stripe expects amounts in cents
         },
         quantity: item.qty || 1,
       }));
@@ -56,7 +59,7 @@ module.exports = function (app, requireUser) {
         userId: req.userSession.userId,
         orderId: session.id, // Using session ID as orderId
         stripeSessionId: session.id,
-        amount: items.reduce((sum, item) => sum + (item.price * (item.qty || 1)), 0),
+        amount: items.reduce((sum, item) => sum + ((advancePayment ? item.price / 2 : item.price) * (item.qty || 1)), 0),
         currency: "INR",
         status: "pending",
         shippingAddress: shippingDetails,
@@ -107,6 +110,48 @@ module.exports = function (app, requireUser) {
         const user = await User.findByIdAndUpdate(userId, { isPaid: true }, { returnDocument: 'after' });
 
         if (user && payment) {
+          // Create the Order
+          const newOrder = new Order({
+            userId,
+            products: payment.items,
+            totalAmount: payment.amount,
+            paymentMethod: "Online",
+            paymentStatus: "Paid",
+            orderStatus: "Confirmed",
+            address: {
+              fullName: session.metadata.shippingFullName,
+              addressLine: session.metadata.shippingAddressLine,
+              city: session.metadata.shippingCity,
+              state: session.metadata.shippingState,
+              pincode: session.metadata.shippingPincode,
+              phone: session.metadata.shippingPhone
+            }
+          });
+          await newOrder.save();
+
+          // Deduct stock and increase soldCount
+          for (const item of payment.items) {
+            if (item.bookId && mongoose.Types.ObjectId.isValid(item.bookId)) {
+              const book = await Book.findById(item.bookId);
+              if (book) {
+                const currentStock = book.stockQuantity || 10;
+                book.stockQuantity = Math.max(0, currentStock - (item.qty || 1));
+                book.soldCount = (book.soldCount || 0) + (item.qty || 1);
+                if (book.stockQuantity < 5) book.lowStockAlert = true;
+                await book.save();
+              }
+            } else if (item.title) {
+               const book = await Book.findOne({ title: item.title });
+               if (book) {
+                 const currentStock = book.stockQuantity || 10;
+                 book.stockQuantity = Math.max(0, currentStock - (item.qty || 1));
+                 book.soldCount = (book.soldCount || 0) + (item.qty || 1);
+                 if (book.stockQuantity < 5) book.lowStockAlert = true;
+                 await book.save();
+               }
+            }
+          }
+
           // Send Receipt Email
           const orderItemsHtml = payment.items.map(item => `
             <tr>

@@ -200,6 +200,19 @@ function clearSessionCookie(res, name) {
   setSessionCookie(res, name, "", { ...getSessionCookieOptions(0), maxAge: 0 });
 }
 
+function signUserToken(user) {
+  return jwt.sign(
+    {
+      userId: user._id,
+      email: user.email,
+      name: user.name,
+      sessionVersion: user.sessionVersion || 0
+    },
+    JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+}
+
 function buildLoginRedirect(loginPath, nextPath) {
   const params = new URLSearchParams({
     next: nextPath,
@@ -314,7 +327,7 @@ function requireAdminOrSeller(req, res, next) {
   return res.status(401).json({ message: "Login required (Admin or Seller)" });
 }
 
-function requireUser(req, res, next) {
+async function requireUser(req, res, next) {
   const authHeader = req.headers.authorization || "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
 
@@ -322,7 +335,22 @@ function requireUser(req, res, next) {
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    req.userSession = payload; // { userId, email, name }
+    const user = await User.findById(payload.userId).select("sessionVersion blocked");
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid or expired session token" });
+    }
+
+    if (user.blocked) {
+      return res.status(403).json({ message: "Your account has been blocked. Please contact support." });
+    }
+
+    if ((user.sessionVersion || 0) !== Number(payload.sessionVersion || 0)) {
+      return res.status(401).json({ message: "Session expired. Please sign in again." });
+    }
+
+    req.userSession = payload; // { userId, email, name, sessionVersion }
+    req.userRecord = user;
     next();
   } catch (err) {
     return res.status(401).json({ message: "Invalid or expired session token" });
@@ -567,7 +595,7 @@ app.post("/api/auth/login", async (req, res) => {
       return res.status(403).json({ message: "Your account has been blocked. Please contact support." });
     }
 
-    const token = jwt.sign({ userId: user._id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
+    const token = signUserToken(user);
 
     // Track Login History
     try {
@@ -643,7 +671,7 @@ app.post("/api/auth/verify-otp", async (req, res) => {
     user.password = await bcrypt.hash(newPassword.trim(), 10);
     await user.save();
 
-    const token = jwt.sign({ userId: user._id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
+    const token = signUserToken(user);
 
     setSessionCookie(res, USER_SESSION_COOKIE, token, getSessionCookieOptions());
 
@@ -688,11 +716,7 @@ app.patch("/api/user/profile", requireUser, async (req, res) => {
     await user.save();
 
     // Generate new token if name or email changed
-    const token = jwt.sign(
-      { userId: user._id, email: user.email, name: user.name },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const token = signUserToken(user);
 
     setSessionCookie(res, USER_SESSION_COOKIE, token, getSessionCookieOptions());
 

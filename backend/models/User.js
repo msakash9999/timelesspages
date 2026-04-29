@@ -82,6 +82,47 @@ const userSchema = new mongoose.Schema(
     memberStatus: {
       type: String,
       default: "Active"
+    },
+    sessionVersion: {
+      type: Number,
+      default: 0
+    },
+    preferences: {
+      theme: {
+        type: String,
+        enum: ["light", "dark"],
+        default: "light"
+      },
+      notificationsEnabled: {
+        type: Boolean,
+        default: true
+      },
+      privacy: {
+        profileVisible: {
+          type: Boolean,
+          default: true
+        },
+        showEmail: {
+          type: Boolean,
+          default: false
+        },
+        showPhone: {
+          type: Boolean,
+          default: false
+        }
+      }
+    },
+    cancelCount: {
+      type: Number,
+      default: 0
+    },
+    returnCount: {
+      type: Number,
+      default: 0
+    },
+    advancePaymentRequired: {
+      type: Boolean,
+      default: false
     }
   },
   {

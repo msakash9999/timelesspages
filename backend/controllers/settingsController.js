@@ -7,12 +7,22 @@ const bcrypt = require("bcryptjs");
 exports.getSettings = async (req, res) => {
   try {
     const user = await User.findById(req.userSession.userId).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
     const loginHistory = await LoginHistory.find({ userId: req.userSession.userId }).sort({ loginTime: -1 }).limit(10);
+    const addressesCount = await Address.countDocuments({ userId: req.userSession.userId });
+    const ordersCount = await Order.countDocuments({ userId: req.userSession.userId });
     
     res.json({
       user,
       loginHistory,
-      twoFactorEnabled: false, // Placeholder
+      preferences: user.preferences || {},
+      stats: {
+        ordersCount,
+        addressesCount,
+        wishlistCount: (user.wishlist || []).length
+      },
+      twoFactorEnabled: false,
       emailVerified: user.isVerified
     });
   } catch (err) {
@@ -22,16 +32,40 @@ exports.getSettings = async (req, res) => {
 
 exports.updateSettings = async (req, res) => {
   try {
-    const { email, phone, currentPassword, newPassword } = req.body;
+    const {
+      email,
+      phone,
+      currentPassword,
+      newPassword,
+      themePreference,
+      notificationsEnabled,
+      privacy
+    } = req.body;
     const user = await User.findById(req.userSession.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    if (email && email !== user.email) {
-      const existing = await User.findOne({ email });
+    if (typeof email === "string" && email.trim() && email.trim().toLowerCase() !== user.email) {
+      const normalizedEmail = email.trim().toLowerCase();
+      const existing = await User.findOne({ email: normalizedEmail });
       if (existing) return res.status(400).json({ message: "Email already in use" });
-      user.email = email;
+      user.email = normalizedEmail;
     }
 
-    if (phone) user.phone = phone;
+    if (typeof phone === "string") user.phone = phone.trim();
+
+    user.preferences = user.preferences || {};
+    if (themePreference === "light" || themePreference === "dark") {
+      user.preferences.theme = themePreference;
+    }
+    if (notificationsEnabled !== undefined) {
+      user.preferences.notificationsEnabled = notificationsEnabled === true || notificationsEnabled === "true";
+    }
+    if (privacy && typeof privacy === "object") {
+      user.preferences.privacy = {
+        ...(user.preferences.privacy || {}),
+        ...privacy
+      };
+    }
 
     if (newPassword) {
       if (!currentPassword) return res.status(400).json({ message: "Current password required to change password" });
@@ -41,7 +75,10 @@ exports.updateSettings = async (req, res) => {
     }
 
     await user.save();
-    res.json({ message: "Settings updated successfully" });
+    res.json({
+      message: "Settings updated successfully",
+      user: await User.findById(req.userSession.userId).select("-password")
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -67,6 +104,7 @@ exports.deleteAccount = async (req, res) => {
 exports.clearWishlist = async (req, res) => {
   try {
     const user = await User.findById(req.userSession.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
     user.wishlist = [];
     await user.save();
     res.json({ message: "Wishlist cleared" });
@@ -78,6 +116,7 @@ exports.clearWishlist = async (req, res) => {
 exports.clearCart = async (req, res) => {
   try {
     const user = await User.findById(req.userSession.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
     user.cart = [];
     await user.save();
     res.json({ message: "Cart cleared" });
@@ -111,8 +150,11 @@ exports.exportData = async (req, res) => {
 
 exports.logoutAllDevices = async (req, res) => {
   try {
-    // In a real app with token versioning, we would increment a version.
-    // For now, we clear history as a signal, and in a real production app we'd blacklist old tokens.
+    const user = await User.findById(req.userSession.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.sessionVersion = (user.sessionVersion || 0) + 1;
+    await user.save();
     await LoginHistory.deleteMany({ userId: req.userSession.userId });
     res.json({ message: "Logged out from all other devices successfully" });
   } catch (err) {

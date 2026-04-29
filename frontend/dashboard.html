@@ -319,9 +319,11 @@
         lucide.createIcons();
         const Persistence = window.TimelessPagesUserPersistence;
         const token = Persistence ? Persistence.getCurrentUserToken() : localStorage.getItem("timelessPagesUserToken");
+        const userId = Persistence ? Persistence.getCurrentUserId() : 'guest';
 
         if (!token) {
             window.location.href = "login.html";
+            throw new Error('Authentication required');
         }
 
         // --- NAVIGATION ---
@@ -333,12 +335,24 @@
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const target = link.getAttribute('data-section');
+
+                if (target === 'home') {
+                    window.location.href = 'index.html';
+                    return;
+                }
                 
                 navLinks.forEach(l => l.classList.remove('active'));
                 link.classList.add('active');
 
                 sections.forEach(sec => sec.style.display = 'none');
-                document.getElementById(`section-${target}`).style.display = 'block';
+                const targetSection = document.getElementById(`section-${target}`);
+                if (targetSection) {
+                    targetSection.style.display = 'block';
+                }
+
+                if (target !== 'home') {
+                    window.location.hash = target;
+                }
 
                 currentBreadcrumb.textContent = link.textContent.trim();
                 
@@ -348,17 +362,34 @@
 
         function loadSectionData(section) {
             switch(section) {
-                case 'home': fetchHomeSummary(); break;
+                case 'home': window.location.href = 'index.html'; break;
                 case 'account': fetchAccountDetails(); break;
                 case 'profile': fetchProfile(); break;
                 case 'orders': fetchOrders(); break;
                 case 'addresses': fetchAddresses(); break;
+                case 'settings': fetchSettings(); break;
+            }
+        }
+
+        const initialSection = (window.location.hash || '').replace('#', '');
+        if (initialSection === 'home') {
+            window.location.href = 'index.html';
+        } else if (initialSection) {
+            const initialLink = document.querySelector(`.nav-link[data-section="${initialSection}"]`);
+            const initialSectionEl = document.getElementById(`section-${initialSection}`);
+            if (initialLink && initialSectionEl) {
+                navLinks.forEach(l => l.classList.remove('active'));
+                initialLink.classList.add('active');
+                sections.forEach(sec => sec.style.display = 'none');
+                initialSectionEl.style.display = 'block';
+                currentBreadcrumb.textContent = initialLink.textContent.trim();
+                loadSectionData(initialSection);
             }
         }
 
         // --- API HELPERS ---
         function getApiBase() {
-            return "http://localhost:5000";
+            return localStorage.getItem('timelessPagesApiBaseUrl') || "http://localhost:5000";
         }
 
         async function apiFetch(endpoint, options = {}) {
@@ -370,8 +401,29 @@
             };
             try {
                 const response = await fetch(url, { ...options, headers });
-                if (response.status === 401) window.location.href = "login.html";
-                return await response.json();
+                if (response.status === 401) {
+                    if (Persistence) {
+                        Persistence.clearSession({ removeToken: true });
+                    }
+                    window.location.href = "login.html";
+                    throw new Error('Session expired');
+                }
+
+                const raw = await response.text();
+                let data = {};
+                if (raw) {
+                    try {
+                        data = JSON.parse(raw);
+                    } catch (parseErr) {
+                        data = { message: raw };
+                    }
+                }
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Request failed');
+                }
+
+                return data;
             } catch (err) {
                 console.error("API Fetch Error:", err);
                 throw err;
@@ -384,15 +436,15 @@
                 const data = await apiFetch('/api/user/summary');
                 document.getElementById('welcomeMsg').textContent = data.welcomeMessage;
                 document.getElementById('homeStats').innerHTML = `
-                    <div class="panel-card" style="padding: 20px; text-align: center;">
+                    <div class="panel-card" style="padding: 20px; text-align: center; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" onclick="document.querySelector('.nav-link[data-section=\\'orders\\']').click()">
                         <h2 style="font-size: 32px; color: var(--primary);">${data.stats.totalOrders}</h2>
                         <p style="font-size: 14px; color: #666;">Total Orders</p>
                     </div>
-                    <div class="panel-card" style="padding: 20px; text-align: center;">
+                    <div class="panel-card" style="padding: 20px; text-align: center; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" onclick="window.location.href='wishlist.html'">
                         <h2 style="font-size: 32px; color: var(--primary);">${data.stats.wishlistCount}</h2>
                         <p style="font-size: 14px; color: #666;">In Wishlist</p>
                     </div>
-                    <div class="panel-card" style="padding: 20px; text-align: center;">
+                    <div class="panel-card" style="padding: 20px; text-align: center; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" onclick="document.querySelector('.nav-link[data-section=\\'addresses\\']').click()">
                         <h2 style="font-size: 32px; color: var(--primary);">${data.stats.savedAddressesCount}</h2>
                         <p style="font-size: 14px; color: #666;">Saved Addresses</p>
                     </div>
@@ -410,23 +462,76 @@
             try {
                 const data = await apiFetch('/api/user/account');
                 document.getElementById('accountDetailsGrid').innerHTML = `
-                    <div class="input-group"><label>Username</label><p style="padding: 10px; background: #f9f9f9; border-radius: 8px;">${data.username}</p></div>
-                    <div class="input-group"><label>Email</label><p style="padding: 10px; background: #f9f9f9; border-radius: 8px;">${data.email}</p></div>
-                    <div class="input-group"><label>Phone</label><p style="padding: 10px; background: #f9f9f9; border-radius: 8px;">${data.phone}</p></div>
-                    <div class="input-group"><label>Member Since</label><p style="padding: 10px; background: #f9f9f9; border-radius: 8px;">${new Date(data.memberSince).toLocaleDateString()}</p></div>
-                    <div class="input-group"><label>Account ID</label><p style="font-family: monospace; font-size: 12px; padding: 10px; background: #f9f9f9; border-radius: 8px;">${data.accountId}</p></div>
+                    <div class="info-grid">
+                        <div class="input-group"><label>Name</label><p style="padding: 10px; background: #f9f9f9; border-radius: 8px;">${data.name || ''}</p></div>
+                        <div class="input-group"><label>Email</label><p style="padding: 10px; background: #f9f9f9; border-radius: 8px;">${data.email || ''}</p></div>
+                        <div class="input-group"><label>Phone</label><p style="padding: 10px; background: #f9f9f9; border-radius: 8px;">${data.phone || 'Not provided'}</p></div>
+                        <div class="input-group"><label>Join Date</label><p style="padding: 10px; background: #f9f9f9; border-radius: 8px;">${data.joinDate ? new Date(data.joinDate).toLocaleDateString() : 'N/A'}</p></div>
+                        <div class="input-group"><label>User ID</label><p style="font-family: monospace; font-size: 12px; padding: 10px; background: #f9f9f9; border-radius: 8px;">${data.userId || data.accountId || ''}</p></div>
+                    </div>
+                    <div class="panel-card" style="margin-top: 20px; padding: 18px; border: 1px solid #eee;">
+                        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;">
+                            <div class="stat-item" style="text-align: center; padding: 14px; background: #fafafa; border-radius: 10px;">
+                                <div class="stat-label">Orders</div>
+                                <div class="stat-value">${data.stats?.totalOrders || 0}</div>
+                            </div>
+                            <div class="stat-item" style="text-align: center; padding: 14px; background: #fafafa; border-radius: 10px;">
+                                <div class="stat-label">Wishlist</div>
+                                <div class="stat-value">${data.stats?.wishlistCount || 0}</div>
+                            </div>
+                            <div class="stat-item" style="text-align: center; padding: 14px; background: #fafafa; border-radius: 10px;">
+                                <div class="stat-label">Addresses</div>
+                                <div class="stat-value">${data.stats?.savedAddressesCount || 0}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dashboard-row" style="margin-top: 20px; display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+                        <div class="panel-card" style="padding: 18px; border: 1px solid #eee;">
+                            <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+                                <h3 style="margin: 0;">Recent Orders</h3>
+                                <i data-lucide="package"></i>
+                            </div>
+                            ${data.recentOrders && data.recentOrders.length ? data.recentOrders.map(order => `
+                                <div style="padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+                                    <div style="font-weight: 600;">Order #${order._id.slice(-6).toUpperCase()}</div>
+                                    <div style="font-size: 13px; color: #666;">${new Date(order.createdAt).toLocaleDateString()} • ₹${order.totalAmount || 0}</div>
+                                </div>
+                            `).join('') : '<p style="color:#777;">No recent orders yet.</p>'}
+                        </div>
+                        <div class="panel-card" style="padding: 18px; border: 1px solid #eee;">
+                            <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+                                <h3 style="margin: 0;">Wishlist Preview</h3>
+                                <i data-lucide="heart"></i>
+                            </div>
+                            ${data.wishlistPreview && data.wishlistPreview.length ? data.wishlistPreview.map(item => `
+                                <div style="padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+                                    <div style="font-weight: 600;">${item.title || 'Book'}</div>
+                                    <div style="font-size: 13px; color: #666;">₹${item.price || 0}</div>
+                                </div>
+                            `).join('') : '<p style="color:#777;">Your wishlist is empty.</p>'}
+                        </div>
+                    </div>
                 `;
+                if (document.getElementById('statOrdersCount')) {
+                    document.getElementById('statOrdersCount').textContent = String(data.stats?.totalOrders || 0);
+                }
+                if (document.getElementById('profileStrength')) {
+                    document.getElementById('profileStrength').textContent = `${data.stats?.profileCompletion || 0}%`;
+                }
+                lucide.createIcons();
             } catch (err) {}
         }
 
         // --- PROFILE MODULE ---
         let isEditMode = false;
+        let currentUser = null;
         const editBtn = document.getElementById('editBtn');
         const cancelBtn = document.getElementById('cancelBtn');
 
         async function fetchProfile() {
             try {
                 const user = await apiFetch('/api/user/profile');
+                currentUser = user;
                 document.getElementById('displayUserName').textContent = user.name;
                 document.getElementById('displayUserEmail').textContent = user.email;
                 document.getElementById('inputName').value = user.name;
@@ -436,6 +541,18 @@
                 document.getElementById('inputDob').value = user.dob ? user.dob.split('T')[0] : "";
                 document.getElementById('inputBio').value = user.bio || "";
                 document.getElementById('userAvatar').src = user.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200";
+                const profileCompletion = Math.round(([
+                    user.name,
+                    user.email,
+                    user.phone,
+                    user.profileImage,
+                    user.bio,
+                    user.dob
+                ].filter(Boolean).length / 6) * 100);
+                document.getElementById('profileStrength').textContent = `${profileCompletion}%`;
+                if (Persistence && userId !== 'guest') {
+                    Persistence.saveProfile(user, { userId, sync: false });
+                }
             } catch (err) {}
         }
 
@@ -471,11 +588,16 @@
                 bio: document.getElementById('inputBio').value
             };
             try {
-                await apiFetch('/api/user/profile', { method: 'PUT', body: JSON.stringify(payload) });
+                const response = await apiFetch('/api/user/profile', { method: 'PUT', body: JSON.stringify(payload) });
+                currentUser = response.user || currentUser || {};
+                if (Persistence && userId !== 'guest') {
+                    Persistence.saveProfile({ ...(currentUser || {}), ...payload }, { userId, sync: false });
+                }
                 alert("Profile updated!");
                 toggleEdit(false);
                 fetchProfile();
-            } catch (err) { alert("Failed to update profile"); }
+                fetchAccountDetails();
+            } catch (err) { alert(err.message || "Failed to update profile"); }
         }
 
         // Avatar Upload
@@ -494,15 +616,40 @@
                     body: formData
                 });
                 const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Upload failed');
                 document.getElementById('userAvatar').src = data.imageUrl;
+                if (currentUser) {
+                    currentUser.profileImage = data.imageUrl;
+                }
+                if (Persistence && userId !== 'guest') {
+                    Persistence.saveProfile({ ...(currentUser || {}), profileImage: data.imageUrl }, { userId, sync: false });
+                }
                 alert("Avatar updated!");
-            } catch (err) { alert("Upload failed"); }
+                fetchProfile();
+                fetchAccountDetails();
+            } catch (err) { alert(err.message || "Upload failed"); }
         });
 
         // --- ADDRESS MODULE ---
         async function fetchAddresses() {
             try {
                 const data = await apiFetch('/api/user/address');
+                if (Persistence && userId !== 'guest') {
+                    Persistence.saveAddress(data, { userId });
+                }
+                if (!data || data.length === 0) {
+                    document.getElementById('addressGrid').innerHTML = `
+                        <div class="panel-card" style="padding: 24px; text-align: center; border: 1px dashed #ddd;">
+                            <i data-lucide="map-pin" style="width: 28px; height: 28px; margin-bottom: 8px;"></i>
+                            <p>No saved addresses yet.</p>
+                        </div>
+                        <div style="border: 2px dashed #eee; border-radius: 16px; display: grid; place-items: center; min-height: 180px; cursor: pointer; color: #aaa;" onclick="showAddressModal()">
+                            <div style="text-align: center;"><i data-lucide="plus"></i><p>Add New</p></div>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                    return;
+                }
                 document.getElementById('addressGrid').innerHTML = data.map(addr => `
                     <div class="panel-card" style="padding: 24px; border: 1px solid ${addr.isDefault ? 'var(--primary)' : '#eee'}; position: relative;">
                         ${addr.isDefault ? '<span style="position: absolute; top: 16px; right: 16px; font-size: 11px; background: #e8f5e9; color: #1b5e20; padding: 4px 10px; border-radius: 99px; font-weight: 600;">DEFAULT</span>' : ''}
@@ -569,25 +716,37 @@
                 }
                 document.getElementById('addressFormModal').style.display = 'none';
                 fetchAddresses();
-            } catch (err) { alert("Save failed"); }
+            } catch (err) { alert(err.message || "Save failed"); }
         });
 
         window.deleteAddress = async (id) => {
             if (confirm("Delete this address?")) {
-                await apiFetch(`/api/user/address/${id}`, { method: 'DELETE' });
-                fetchAddresses();
+                try {
+                    await apiFetch(`/api/user/address/${id}`, { method: 'DELETE' });
+                    fetchAddresses();
+                } catch (err) {
+                    alert(err.message || "Failed to delete address");
+                }
             }
         };
 
         window.setDefaultAddress = async (id) => {
-            await apiFetch(`/api/user/address/${id}/default`, { method: 'PATCH' });
-            fetchAddresses();
+            try {
+                await apiFetch(`/api/user/address/${id}/default`, { method: 'PATCH' });
+                fetchAddresses();
+            } catch (err) {
+                alert(err.message || "Failed to set default address");
+            }
         };
 
         window.editAddress = async (id) => {
-            const data = await apiFetch('/api/user/address');
-            const addr = data.find(a => a._id === id);
-            showAddressModal(addr);
+            try {
+                const data = await apiFetch('/api/user/address');
+                const addr = data.find(a => a._id === id);
+                showAddressModal(addr);
+            } catch (err) {
+                alert(err.message || "Failed to load address");
+            }
         };
 
         // --- ORDERS MODULE ---
@@ -602,29 +761,263 @@
 
                 let productsHtml = '';
                 orders.forEach(order => {
-                    const date = new Date(order.createdAt).toLocaleDateString();
-                    order.products.forEach(item => {
-                        productsHtml += `
-                            <div class="panel-card" style="display: flex; align-items: center; gap: 20px; padding: 15px;">
-                                <img src="${item.image || item.imageUrl || 'assets/placeholder.png'}" alt="${item.title}" style="width: 70px; height: 90px; object-fit: cover; border-radius: 8px; border: 1px solid #eee;">
-                                <div style="flex: 1;">
-                                    <h4 style="font-size: 16px; margin-bottom: 4px;">${item.title}</h4>
-                                    <p style="font-size: 13px; color: #666; margin-bottom: 2px;">Order ID: #${order._id.slice(-8).toUpperCase()}</p>
-                                    <p style="font-size: 12px; color: #999;">Purchased on ${date}</p>
-                                </div>
-                                <div style="text-align: right;">
-                                    <div style="font-weight: 700; color: var(--primary); margin-bottom: 5px;">₹${item.price}</div>
-                                    <span style="font-size: 11px; background: #e8f5e9; color: #2e7d32; padding: 3px 8px; border-radius: 99px; font-weight: 600;">DELIVERED</span>
-                                </div>
+                    const date = new Date(order.createdAt).toLocaleString();
+                    const statusColors = {
+                        "Confirmed": "#3498db", "In Progress": "#f39c12", "Packed": "#e67e22", 
+                        "Shipped": "#9b59b6", "In Transit": "#8e44ad", "Out For Delivery": "#d35400",
+                        "Delivered": "#27ae60", "CANCELLED": "#e74c3c"
+                    };
+                    const color = statusColors[order.orderStatus] || "#333";
+                    
+                    const stages = ["Confirmed", "In Progress", "Packed", "Shipped", "In Transit", "Out For Delivery", "Delivered"];
+                    let currentStageIndex = stages.indexOf(order.orderStatus);
+                    if (order.orderStatus === "CANCELLED") currentStageIndex = -1;
+
+                    let timelineHtml = '<div style="display: flex; justify-content: space-between; margin-top: 15px; position: relative; font-size: 11px; color: #777; flex-wrap: wrap;">';
+                    timelineHtml += '<div style="position: absolute; top: 8px; left: 0; right: 0; height: 2px; background: #eee; z-index: 1;"></div>';
+                    
+                    stages.forEach((stage, idx) => {
+                        const isCompleted = currentStageIndex >= idx;
+                        const isCurrent = currentStageIndex === idx;
+                        const stageColor = isCompleted ? '#27ae60' : '#ddd';
+                        const textColor = isCurrent ? '#333' : '#999';
+                        const fontWeight = isCurrent ? 'bold' : 'normal';
+                        
+                        timelineHtml += `
+                            <div style="z-index: 2; text-align: center; width: 14%; min-width: 60px;">
+                                <div style="width: 18px; height: 18px; background: ${stageColor}; border-radius: 50%; margin: 0 auto 5px;"></div>
+                                <span style="color: ${textColor}; font-weight: ${fontWeight}; display: block; line-height: 1.2;">${stage}</span>
                             </div>
                         `;
                     });
+                    timelineHtml += '</div>';
+
+                    let actionHtml = '';
+                    if (order.orderStatus !== "Out For Delivery" && order.orderStatus !== "Delivered" && order.orderStatus !== "CANCELLED") {
+                        actionHtml = `<button onclick="cancelOrder('${order._id}')" style="padding: 6px 12px; background: #fff; border: 1px solid #e74c3c; color: #e74c3c; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">Cancel Order</button>`;
+                    } else if (order.orderStatus === "Delivered") {
+                        const days = (Date.now() - new Date(order.createdAt).getTime() - 120 * 60 * 60 * 1000) / (1000 * 60 * 60 * 24);
+                        if (days <= 7 && !order.returnStatus) {
+                            actionHtml = `<button onclick="returnOrder('${order._id}')" style="padding: 6px 12px; background: #fff; border: 1px solid #3498db; color: #3498db; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">Return Order</button>`;
+                        }
+                    }
+                    if (order.returnStatus) {
+                         actionHtml = `<span style="font-size: 12px; color: #e67e22; font-weight: bold; padding: 4px 8px; background: #fff3e0; border-radius: 4px;">${order.returnStatus}</span>`;
+                    }
+
+                    productsHtml += `
+                        <div class="panel-card" style="padding: 20px; margin-bottom: 20px; border: 1px solid #eee; border-radius: 12px;">
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <h3 style="font-size: 16px; margin: 0;">Order #${order._id.slice(-8).toUpperCase()}</h3>
+                                    <p style="font-size: 12px; color: #666; margin: 5px 0 0;">Placed: ${date} • Paid via: <strong style="color: #333;">${order.paymentMethod || 'COD'}</strong></p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span style="font-size: 12px; background: ${color}15; color: ${color}; padding: 6px 12px; border-radius: 99px; font-weight: bold; border: 1px solid ${color}40;">${order.orderStatus}</span>
+                                    <div style="margin-top: 12px;">${actionHtml}</div>
+                                </div>
+                            </div>
+                    `;
+
+                    order.products.forEach(item => {
+                        productsHtml += `
+                            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                                <img src="${item.image || item.imageUrl || 'assets/placeholder.png'}" alt="${item.title}" style="width: 60px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #eee;">
+                                <div style="flex: 1;">
+                                    <h4 style="font-size: 15px; margin: 0 0 5px; color: #222;">${item.title}</h4>
+                                    <p style="font-size: 13px; color: #666; margin: 0;">Qty: <strong>${item.qty}</strong></p>
+                                </div>
+                                <div style="font-weight: 700; font-size: 15px; color: #222;">₹${item.price * item.qty}</div>
+                            </div>
+                        `;
+                    });
+
+                    productsHtml += `
+                            <div style="border-top: 1px dashed #ddd; padding-top: 15px; margin-top: 15px; display: flex; justify-content: space-between; font-size: 13px; flex-wrap: wrap; gap: 10px;">
+                                <div style="background: #fcfcfc; padding: 10px 15px; border-radius: 8px; border: 1px solid #f0f0f0;">
+                                    <strong style="color: #444; display: block; margin-bottom: 4px;">Delivery Address:</strong>
+                                    ${order.address?.fullName || ''}<br>
+                                    ${order.address?.addressLine || order.address?.houseNumber + ' ' + order.address?.street}<br>
+                                    ${order.address?.city}, ${order.address?.pincode}
+                                </div>
+                                <div style="text-align: right; display: flex; flex-direction: column; justify-content: center;">
+                                    <span style="color: #666; margin-bottom: 4px;">Order Total</span>
+                                    <strong style="font-size: 20px; color: var(--primary);">₹${order.totalAmount}</strong>
+                                </div>
+                            </div>
+                            ${order.orderStatus !== "CANCELLED" ? timelineHtml : `<div style="background: #fdeaea; color: #e74c3c; padding: 10px 15px; border-radius: 8px; font-size: 13px; margin-top: 15px;"><strong>Cancellation Reason:</strong> ${order.cancelReason || 'N/A'}</div>`}
+                        </div>
+                    `;
                 });
                 ordersList.innerHTML = productsHtml;
             } catch (err) {}
         }
 
+        window.cancelOrder = async (id) => {
+            const reason = prompt("Please provide a reason for cancellation:");
+            if (!reason) return;
+            try {
+                await apiFetch(`/api/order/cancel/${id}`, { method: 'POST', body: JSON.stringify({ reason }) });
+                alert("Order cancelled successfully.");
+                fetchOrders();
+                fetchHomeSummary();
+                fetchAccountDetails();
+            } catch (err) {
+                alert(err.message || "Failed to cancel order.");
+            }
+        };
+
+        window.returnOrder = async (id) => {
+            const reasonText = prompt("Reason for return:\\n1. Wrong Product\\n2. Damaged Product\\n3. Late Delivery\\n4. Quality Issue\\n5. Changed Mind\\n6. Other\\n\\nEnter reason or number:");
+            if (!reasonText) return;
+            
+            const reasonsMap = {
+                "1": "Wrong Product", "2": "Damaged Product", "3": "Late Delivery",
+                "4": "Quality Issue", "5": "Changed Mind", "6": "Other"
+            };
+            const reason = reasonsMap[reasonText] || reasonText;
+            
+            let customReason = "";
+            if (reason.toLowerCase() === "other") {
+                customReason = prompt("Please specify your reason for return:");
+                if (!customReason) return;
+            }
+            try {
+                await apiFetch(`/api/order/return/${id}`, { method: 'POST', body: JSON.stringify({ reason, customReason }) });
+                alert("Return request submitted successfully.");
+                fetchOrders();
+            } catch (err) {
+                alert(err.message || "Failed to submit return request.");
+            }
+        };
+
         // --- SETTINGS MODULE ---
+        let settingsControlsReady = false;
+
+        function ensureSettingsControls() {
+            if (settingsControlsReady) return;
+            const settingsSection = document.getElementById('section-settings');
+            const settingsBody = settingsSection ? settingsSection.querySelector('.info-section > div') : null;
+            if (!settingsBody) return;
+
+            const existing = document.getElementById('settingsPreferencesCard');
+            if (existing) {
+                settingsControlsReady = true;
+                return;
+            }
+
+            const card = document.createElement('div');
+            card.id = 'settingsPreferencesCard';
+            card.className = 'panel-card';
+            card.style.padding = '20px';
+            card.style.marginBottom = '20px';
+            card.innerHTML = `
+                <h4 style="margin-bottom: 12px;">Preferences</h4>
+                <div style="display: grid; gap: 10px;">
+                    <input type="email" id="settingsEmailInput" placeholder="Update Email" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                    <input type="tel" id="settingsPhoneInput" placeholder="Update Phone" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                    <select id="settingsThemeSelect" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                        <input type="checkbox" id="settingsNotificationsToggle">
+                        Enable notifications
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                        <input type="checkbox" id="privacyProfileVisible">
+                        Profile visible
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                        <input type="checkbox" id="privacyShowEmail">
+                        Show email
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                        <input type="checkbox" id="privacyShowPhone">
+                        Show phone
+                    </label>
+                    <button type="button" id="savePreferencesBtn" style="padding: 10px 16px; background: var(--primary); color: #fff; border: 0; border-radius: 8px; font-weight: 600;">Save Preferences</button>
+                </div>
+            `;
+            settingsBody.insertBefore(card, settingsBody.firstChild);
+            settingsControlsReady = true;
+
+            card.querySelector('#savePreferencesBtn').addEventListener('click', async () => {
+                const payload = {
+                    email: document.getElementById('settingsEmailInput').value.trim(),
+                    phone: document.getElementById('settingsPhoneInput').value.trim(),
+                    themePreference: document.getElementById('settingsThemeSelect').value,
+                    notificationsEnabled: document.getElementById('settingsNotificationsToggle').checked,
+                    privacy: {
+                        profileVisible: document.getElementById('privacyProfileVisible').checked,
+                        showEmail: document.getElementById('privacyShowEmail').checked,
+                        showPhone: document.getElementById('privacyShowPhone').checked
+                    }
+                };
+
+                try {
+                    const data = await apiFetch('/api/user/settings', {
+                        method: 'PUT',
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (Persistence && userId !== 'guest') {
+                        Persistence.savePreferences({
+                            theme: payload.themePreference,
+                            notificationsEnabled: payload.notificationsEnabled,
+                            privacy: payload.privacy
+                        }, { userId });
+                        if (data.user) {
+                            Persistence.saveProfile(data.user, { userId, sync: false });
+                        }
+                    }
+
+                    document.body.setAttribute('data-theme', payload.themePreference === 'dark' ? 'dark' : 'light');
+
+                    alert(data.message || 'Preferences saved successfully');
+                    fetchProfile();
+                    fetchAccountDetails();
+                } catch (err) {
+                    alert(err.message || 'Failed to save preferences');
+                }
+            });
+        }
+
+        function populateSettingsControls(data) {
+            ensureSettingsControls();
+            const user = data?.user || {};
+            const prefs = data?.preferences || {};
+
+            const emailInput = document.getElementById('settingsEmailInput');
+            const phoneInput = document.getElementById('settingsPhoneInput');
+            const themeSelect = document.getElementById('settingsThemeSelect');
+            const notificationsToggle = document.getElementById('settingsNotificationsToggle');
+            const privacyProfileVisible = document.getElementById('privacyProfileVisible');
+            const privacyShowEmail = document.getElementById('privacyShowEmail');
+            const privacyShowPhone = document.getElementById('privacyShowPhone');
+
+            if (emailInput) emailInput.value = user.email || '';
+            if (phoneInput) phoneInput.value = user.phone || '';
+            if (themeSelect) themeSelect.value = prefs.theme || 'light';
+            if (notificationsToggle) notificationsToggle.checked = prefs.notificationsEnabled !== false;
+            if (privacyProfileVisible) privacyProfileVisible.checked = prefs.privacy?.profileVisible !== false;
+            if (privacyShowEmail) privacyShowEmail.checked = prefs.privacy?.showEmail === true;
+            if (privacyShowPhone) privacyShowPhone.checked = prefs.privacy?.showPhone === true;
+            document.body.setAttribute('data-theme', prefs.theme === 'dark' ? 'dark' : 'light');
+        }
+
+        async function fetchSettings() {
+            try {
+                const data = await apiFetch('/api/user/settings');
+                populateSettingsControls(data);
+                if (Persistence && userId !== 'guest' && data.preferences) {
+                    Persistence.savePreferences(data.preferences, { userId });
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
         document.getElementById('changePassBtn').addEventListener('click', async () => {
             const currentPassword = document.getElementById('currentPass').value;
             const newPassword = document.getElementById('newPass').value;
@@ -634,50 +1027,78 @@
                 alert("Password updated!");
                 document.getElementById('currentPass').value = "";
                 document.getElementById('newPass').value = "";
-            } catch (err) { alert("Update failed. Check current password."); }
+            } catch (err) { alert(err.message || "Update failed. Check current password."); }
         });
 
         document.getElementById('logoutAllBtn').addEventListener('click', async () => {
-            if (confirm("Logout from all other devices?")) {
-                await apiFetch('/api/user/logout-all-devices', { method: 'POST' });
-                alert("Logged out from all other devices!");
+            if (confirm("Logout from all devices?")) {
+                try {
+                    await apiFetch('/api/user/logout-all-devices', { method: 'POST' });
+                    if (Persistence) {
+                        Persistence.clearSession({ removeToken: true });
+                    }
+                    alert("Logged out from all devices!");
+                    window.location.href = "login.html";
+                } catch (err) {
+                    alert(err.message || "Failed to logout all devices");
+                }
             }
         });
 
         document.getElementById('clearCartBtn').addEventListener('click', async () => {
             if (confirm("Clear your cart?")) {
-                await apiFetch('/api/user/clear-cart', { method: 'POST' });
-                alert("Cart cleared!");
+                try {
+                    await apiFetch('/api/user/clear-cart', { method: 'POST' });
+                    if (Persistence && userId !== 'guest') {
+                        Persistence.saveCart([], { userId });
+                    }
+                    alert("Cart cleared!");
+                } catch (err) { alert(err.message || "Failed to clear cart"); }
             }
         });
 
         document.getElementById('clearWishlistBtn').addEventListener('click', async () => {
             if (confirm("Clear your wishlist?")) {
-                await apiFetch('/api/user/clear-wishlist', { method: 'POST' });
-                alert("Wishlist cleared!");
+                try {
+                    await apiFetch('/api/user/clear-wishlist', { method: 'POST' });
+                    if (Persistence && userId !== 'guest') {
+                        Persistence.saveWishlist([], { userId });
+                    }
+                    alert("Wishlist cleared!");
+                } catch (err) { alert(err.message || "Failed to clear wishlist"); }
             }
         });
 
         document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
-            const confirmVal = prompt("Type 'DELETE' to confirm permanent account deletion:");
-            if (confirmVal === "DELETE") {
+            if (!confirm("Delete your account permanently?")) {
+                return;
+            }
+
+            try {
                 await apiFetch('/api/user/delete-account', { method: 'DELETE' });
+                if (Persistence) {
+                    Persistence.clearSession({ removeToken: true });
+                }
                 alert("Account deleted.");
-                window.location.href = "index.html";
+                window.location.href = "login.html";
+            } catch (err) {
+                alert(err.message || "Failed to delete account");
             }
         });
 
         // --- LOGOUT ---
         document.getElementById('logoutBtn').addEventListener('click', (e) => {
             e.preventDefault();
+            fetch(`${getApiBase()}/api/auth/logout`, { method: 'POST' }).catch(() => {});
             if (Persistence) Persistence.clearSession({ removeToken: true });
             else localStorage.clear();
-            window.location.href = "index.html";
+            window.location.href = "login.html";
         });
 
         // --- INITIAL LOAD ---
         fetchProfile();
-        fetchHomeSummary();
+        fetchAccountDetails();
+        fetchSettings();
     </script>
 </body>
 </html>

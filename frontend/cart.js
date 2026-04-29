@@ -349,6 +349,10 @@ function createCartDrawer() {
       const userData = await userRes.json();
       const savedAddress = userData.addresses?.find(a => a.isDefault) || userData.addresses?.[0] || null;
 
+      const isAdvanceRequired = userData.advancePaymentRequired === true;
+      const payableAmount = isAdvanceRequired ? amount / 2 : amount;
+      const advanceWarningHtml = isAdvanceRequired ? `<div style="background:#ffeb3b;color:#e65100;padding:10px;text-align:center;font-weight:bold;font-size:14px;border-bottom:1px solid #fbc02d;">⚠️ Advance Payment Required Due To Previous Order Activity</div>` : '';
+
       const modalHtml = `
         <div id="checkout-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(5px);">
           <div style="background:#fff;width:min(450px, 95vw);border-radius:15px;overflow:hidden;font-family:'Inter',sans-serif;box-shadow:0 20px 50px rgba(0,0,0,0.3);animation: modalFadeIn 0.3s ease;">
@@ -358,7 +362,7 @@ function createCartDrawer() {
               .checkout-title { font-weight: 700; color: #333; margin-bottom: 15px; display: block; font-size: 16px; }
               .addr-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
               .pay-option { display: flex; align-items: center; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
-              .pay-option:hover { border-color: #f18d17; background: #fffcf9; }
+              .pay-option:hover:not(.disabled) { border-color: #f18d17; background: #fffcf9; }
               .pay-option input { margin-right: 12px; accent-color: #f18d17; }
               .pay-option.selected { border-color: #f18d17; background: #fffcf9; }
               .checkout-btn { width: 100%; padding: 14px; background: #f18d17; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.3s; }
@@ -367,7 +371,8 @@ function createCartDrawer() {
             </style>
             <div style="background:#f18d17;color:#fff;padding:25px;text-align:center;">
               <h2 style="margin:0;font-size:22px;">Complete Your Order</h2>
-              <p style="margin:5px 0 0;font-size:15px;opacity:0.9;">Total Payable: <strong>₹${amount.toLocaleString('en-IN')}</strong></p>
+              ${advanceWarningHtml}
+              <p style="margin:5px 0 0;font-size:15px;opacity:0.9;">Total Payable: <strong>₹${payableAmount.toLocaleString('en-IN')}</strong> ${isAdvanceRequired ? '(50% Advance)' : ''}</p>
             </div>
             
             <div class="checkout-section">
@@ -399,7 +404,7 @@ function createCartDrawer() {
                   <div style="font-weight:600; color:#333; display:flex; align-items:center; gap:8px;">
                     Cash on Delivery (COD)
                   </div>
-                  <div style="font-size:12px; color:#777;">Pay when you receive the books + Email Confirmation</div>
+                  <div style="font-size:12px; color:#777;">${isAdvanceRequired ? 'Not available due to account activity' : 'Pay when you receive the books + Email Confirmation'}</div>
                 </div>
               </label>
             </div>
@@ -437,7 +442,11 @@ function createCartDrawer() {
       });
 
       document.getElementById('final-confirm-btn').addEventListener('click', async () => {
-        const payMethod = document.querySelector('input[name="pay-method"]:checked').value;
+        const payMethod = document.querySelector('input[name="pay-method"]:checked')?.value || 'ONLINE';
+        if (isAdvanceRequired && payMethod === 'COD') {
+          alert("Cash on Delivery is not available due to your previous account activity (Advance payment required). Please choose Online Payment.");
+          return;
+        }
         const address = {
           fullName: document.getElementById('ship-name').value.trim(),
           addressLine: document.getElementById('ship-addr').value.trim(),
@@ -492,7 +501,7 @@ function createCartDrawer() {
             const stripeRes = await fetch(getApiBaseUrl() + '/api/payment/create-checkout-session', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-              body: JSON.stringify({ items: cartItems, shippingDetails: address })
+              body: JSON.stringify({ items: cartItems, shippingDetails: address, advancePayment: isAdvanceRequired })
             });
             const stripeData = await stripeRes.json();
             

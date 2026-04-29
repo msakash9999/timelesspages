@@ -32,7 +32,7 @@ const orderSchema = new mongoose.Schema(
     },
     orderStatus: {
       type: String,
-      enum: ["Confirmed", "Shipped", "Delivered", "Cancelled"],
+      enum: ["Confirmed", "In Progress", "Packed", "Shipped", "In Transit", "Out For Delivery", "Delivered", "CANCELLED"],
       default: "Confirmed"
     },
     address: {
@@ -42,7 +42,21 @@ const orderSchema = new mongoose.Schema(
       state: String,
       pincode: String,
       phone: String
-    }
+    },
+    trackingTimeline: [
+      {
+        stage: String,
+        timestamp: { type: Date, default: Date.now }
+      }
+    ],
+    cancelReason: String,
+    returnReason: String,
+    returnStatus: {
+      type: String,
+      enum: ["Return Requested", "Return Approved", "Return Rejected", "Refunded"]
+    },
+    cancelledAt: Date,
+    returnedAt: Date
   },
   {
     timestamps: true

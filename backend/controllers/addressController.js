@@ -12,6 +12,10 @@ exports.getAddresses = async (req, res) => {
 exports.addAddress = async (req, res) => {
   try {
     const { fullName, phone, houseNumber, street, landmark, city, state, pincode, country, addressType, isDefault } = req.body;
+
+    if (!fullName || !phone || !houseNumber || !street || !city || !state || !pincode) {
+      return res.status(400).json({ message: "All required address fields must be provided" });
+    }
     
     if (isDefault) {
       await Address.updateMany({ userId: req.userSession.userId }, { isDefault: false });
@@ -27,7 +31,7 @@ exports.addAddress = async (req, res) => {
       city,
       state,
       pincode,
-      country,
+      country: country || "India",
       addressType,
       isDefault: isDefault || false
     });
@@ -43,6 +47,10 @@ exports.updateAddress = async (req, res) => {
   try {
     const { id } = req.params;
     const { isDefault, ...otherFields } = req.body;
+    const updatePayload = {
+      ...otherFields,
+      country: otherFields.country || "India"
+    };
 
     if (isDefault) {
       await Address.updateMany({ userId: req.userSession.userId }, { isDefault: false });
@@ -50,7 +58,7 @@ exports.updateAddress = async (req, res) => {
 
     const address = await Address.findOneAndUpdate(
       { _id: id, userId: req.userSession.userId },
-      { ...otherFields, isDefault },
+      { ...updatePayload, isDefault: Boolean(isDefault) },
       { new: true }
     );
 
@@ -67,6 +75,11 @@ exports.deleteAddress = async (req, res) => {
     const { id } = req.params;
     const address = await Address.findOneAndDelete({ _id: id, userId: req.userSession.userId });
     if (!address) return res.status(404).json({ message: "Address not found" });
+
+    const remaining = await Address.find({ userId: req.userSession.userId }).sort({ createdAt: -1 });
+    if (address.isDefault && remaining.length > 0) {
+      await Address.updateOne({ _id: remaining[0]._id }, { isDefault: true });
+    }
 
     res.json({ message: "Address deleted successfully" });
   } catch (err) {
