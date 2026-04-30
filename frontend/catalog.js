@@ -175,12 +175,13 @@ function formatPrice(price) {
 }
 
 function renderArrivalCard(book) {
-  const inStock = book.inStock !== false;
+  const stock = book.stockQuantity ?? 10;
+  const inStock = stock > 0;
   return `
     <a href="book.html?id=${book._id}" class="arrival-card ${inStock ? '' : 'out-of-stock'}">
       <div class="arrival-img-wrapper">
         <img src="${book.imageUrl}" alt="${book.title}">
-        ${inStock ? '' : '<div class="out-of-stock-overlay"><span>Out of Stock</span></div>'}
+        ${stock <= 0 ? '<div class="out-of-stock-overlay"><span>Out of Stock</span></div>' : (stock <= 2 ? '<div style="position:absolute;top:10px;left:10px;background:#e74c3c;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;z-index:5;">Hurry! Almost Sold Out</div>' : (stock <= 5 ? '<div style="position:absolute;top:10px;left:10px;background:#f39c12;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;z-index:5;">Few Items Left</div>' : ''))}
       </div>
       <h3>${book.title}</h3>
       <p class="arrival-price">${formatPrice(book.price)}</p>
@@ -189,26 +190,28 @@ function renderArrivalCard(book) {
 }
 
 function renderCompactCard(book) {
-  const inStock = book.inStock !== false;
+  const stock = book.stockQuantity ?? 10;
+  const inStock = stock > 0;
   return `
     <article class="product-card ${inStock ? '' : 'out-of-stock'}" data-id="${book._id || ''}" data-title="${encodeURIComponent(book.title || '')}" data-author="${encodeURIComponent(book.author || '')}" data-price="${book.price || 0}" data-img="${encodeURIComponent(book.imageUrl || '')}">
       <img src="${book.imageUrl}" alt="${book.title}">
       <h3>${book.title}</h3>
       <p>${book.description || book.author}</p>
       <strong>${formatPrice(book.price)}</strong>
-      ${inStock ? '' : '<span class="out-of-stock-badge-small">Sold Out</span>'}
+      ${stock <= 0 ? '<span class="out-of-stock-badge-small">Out of Stock</span>' : (stock <= 2 ? '<span class="out-of-stock-badge-small" style="background:#e74c3c;">Almost Sold Out</span>' : (stock <= 5 ? '<span class="out-of-stock-badge-small" style="background:#f39c12;color:#fff;">Few Left</span>' : ''))}
     </article>
   `;
 }
 
 function renderFullCard(book) {
-  const inStock = book.inStock !== false;
+  const stock = book.stockQuantity ?? 10;
+  const inStock = stock > 0;
   return `
     <article class="product-card ${inStock ? '' : 'out-of-stock'}" data-id="${book._id || ''}" data-title="${encodeURIComponent(book.title || '')}" data-author="${encodeURIComponent(book.author || '')}" data-price="${book.price || 0}" data-img="${encodeURIComponent(book.imageUrl || '')}">
       <button type="button" class="wishlist-top" aria-label="Add to wishlist">&#9825;</button>
       <div class="card-img-wrapper">
         <img src="${book.imageUrl}" alt="${book.title}" loading="lazy">
-        ${inStock ? '' : '<div class="out-of-stock-overlay"><span>Out of Stock</span></div>'}
+        ${stock <= 0 ? '<div class="out-of-stock-overlay"><span>Out of Stock</span></div>' : (stock <= 2 ? '<div style="position:absolute;top:10px;left:10px;background:#e74c3c;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;z-index:5;">Hurry! Almost Sold Out</div>' : (stock <= 5 ? '<div style="position:absolute;top:10px;left:10px;background:#f39c12;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;z-index:5;">Few Items Left</div>' : ''))}
       </div>
       <h3>${book.title}</h3>
       <p class="author">${book.author}</p>

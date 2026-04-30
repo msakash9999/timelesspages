@@ -99,14 +99,48 @@
     });
   });
 
-  function updateStats(bookCount) {
-    // blocked buyers + blocked sellers
+  function updateStats(booksArray) {
     var blocked = allBuyers.filter(function (b) { return b.blocked; }).length +
                   allSellers.filter(function (s) { return s.blocked; }).length;
 
-    if (bookCount !== undefined) {
-      document.getElementById('statBooks').textContent = bookCount;
+    if (booksArray !== undefined && Array.isArray(booksArray)) {
+      document.getElementById('statBooks').textContent = booksArray.length;
+      var totalStock = 0;
+      var totalSold = 0;
+      var totalRevenue = 0;
+      var lowStockCount = 0;
+      var notificationsHtml = '';
+      booksArray.forEach(function(b) {
+        var stock = b.stockQuantity ?? 10;
+        var sold = b.soldCount ?? 0;
+        totalStock += stock;
+        totalSold += sold;
+        totalRevenue += (sold * b.price);
+        if (stock <= 5) {
+          lowStockCount++;
+          notificationsHtml += '<div style="padding:15px;background:#fff3cd;border-left:4px solid #f39c12;border-radius:4px;">' +
+            '<strong style="color:#f39c12;">Warning: Low Stock</strong><br>' +
+            '<span style="color:#555;">' + b.title + ' has only ' + stock + ' units remaining.</span>' +
+          '</div>';
+        }
+      });
+      if (document.getElementById('notificationList')) {
+        document.getElementById('notificationList').innerHTML = notificationsHtml || '<div style="color:var(--db-muted);">No new notifications.</div>';
+      }
+      document.getElementById('statTotalStock').textContent = totalStock;
+      document.getElementById('statSoldCount').textContent = totalSold;
+      document.getElementById('statRevenue').textContent = formatPrice(totalRevenue);
+      document.getElementById('statLowStock').textContent = lowStockCount;
+      if (document.getElementById('topBookValue')) {
+         var topBook = [...booksArray].sort((a,b) => (b.soldCount || 0) - (a.soldCount || 0))[0];
+         document.getElementById('topBookValue').textContent = topBook ? topBook.title + ' (' + (topBook.soldCount || 0) + ' sold)' : 'N/A';
+      }
+      if (document.getElementById('deadInvValue')) {
+         var deadBook = [...booksArray].sort((a,b) => (b.stockQuantity || 0) - (a.stockQuantity || 0)).filter(b => (b.soldCount||0) === 0)[0];
+         document.getElementById('deadInvValue').textContent = deadBook ? deadBook.title : 'None';
+      }
     }
+
     document.getElementById('statBuyers').textContent = allBuyers.length;
     document.getElementById('statSellers').textContent = allSellers.length;
     document.getElementById('statBlocked').textContent = blocked;
@@ -222,6 +256,11 @@
       allSellers = res.data;
       updateStats();
 
+      var sellerSelect = document.getElementById('bookSellerId');
+      if (sellerSelect) {
+        sellerSelect.innerHTML = '<option value="">Assign Seller (Optional)</option>' + allSellers.filter(s => !s.blocked).map(s => '<option value="' + s._id + '">' + (s.storeName || s.name) + '</option>').join('');
+      }
+
       if (allSellers.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" style="color:var(--db-muted)">No active sellers found.</td></tr>';
         return;
@@ -297,6 +336,38 @@
   }
 
   /* ══════════════════════════════════
+     LIVE ORDERS & ANALYTICS
+     ══════════════════════════════════ */
+  async function fetchLiveOrders() {
+    var tbody = document.getElementById('liveOrdersTable');
+    if (!tbody) return;
+    try {
+      var res = await requestJson('/admin/orders', {
+        headers: { Authorization: 'Bearer ' + adminToken }
+      });
+      if (!res.response.ok) throw new Error(res.data.message || 'Failed to fetch orders');
+      var orders = res.data;
+      if (orders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="color:var(--db-muted)">No active orders.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = orders.map(function(o) {
+        var statusColor = o.orderStatus === 'Delivered' ? '#2ecc71' : (o.orderStatus === 'CANCELLED' ? '#e74c3c' : '#f39c12');
+        var addressStr = o.address ? (o.address.city + ', ' + o.address.state) : 'N/A';
+        return '<tr>' +
+          '<td>#' + o._id.substring(0,8) + '</td>' +
+          '<td>' + (o.address?.fullName || 'User') + '</td>' +
+          '<td>' + formatPrice(o.totalAmount) + '</td>' +
+          '<td><span style="color:' + statusColor + ';font-weight:bold;">' + o.orderStatus + '</span></td>' +
+          '<td>' + addressStr + '</td>' +
+        '</tr>';
+      }).join('');
+    } catch(e) {
+      tbody.innerHTML = '<tr><td colspan="5" style="color:#e74c3c">Error: ' + e.message + '</td></tr>';
+    }
+  }
+
+  /* ══════════════════════════════════
      ACTIVITY LOG
      ══════════════════════════════════ */
   function getActivity() { try { return JSON.parse(localStorage.getItem('tp_admin_activity')) || []; } catch { return []; } }
@@ -336,8 +407,31 @@
   /* ══════════════════════════════════
      BOOKS / PRODUCTS (Table View)
      ══════════════════════════════════ */
+  window.promptEditStock = async function(bookId, currentStock) {
+    var newStock = prompt('Enter new stock quantity:', currentStock);
+    if (newStock === null) return;
+    newStock = parseInt(newStock, 10);
+    if (isNaN(newStock) || newStock < 0) return alert('Invalid stock quantity');
+    try {
+      var res = await requestJson('/books/' + bookId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + adminToken },
+        body: JSON.stringify({ stockQuantity: newStock })
+      });
+      if (!res.response.ok) throw new Error(res.data?.message || 'Failed to update stock');
+      addActivity('Admin', 'Admin', 'Updated stock for book ' + bookId);
+      loadAdminBooks();
+    } catch(e) {
+      alert('Error: ' + e.message);
+    }
+  };
+
   function renderBookRow(book) {
-    var inStock = book.inStock !== false; // Default to true if undefined
+    var stock = book.stockQuantity ?? 10;
+    var sold = book.soldCount ?? 0;
+    var demand = book.demandScore ?? 1;
+    var demandBadge = demand > 50 ? '<span style="color:#e74c3c;font-weight:bold;">🔥 High</span>' : 'Normal';
+
     return '<tr>' +
       '<td>' +
         '<div class="product-cell">' +
@@ -351,13 +445,11 @@
       '<td class="hide-mobile">' +
         '<strong>' + formatPrice(book.price) + '</strong>' +
       '</td>' +
+      '<td>' + stock + '</td>' +
+      '<td>' + sold + '</td>' +
+      '<td>' + demandBadge + '</td>' +
       '<td>' +
-        '<label class="toggle-switch">' +
-          '<input type="checkbox" class="toggle-input" ' + (inStock ? 'checked' : '') + ' data-action="toggle-stock" data-id="' + book._id + '">' +
-          '<div class="toggle-slider"></div>' +
-        '</label>' +
-      '</td>' +
-      '<td>' +
+        '<button class="btn-sm" style="background:#f39c12;color:#fff;margin-right:5px;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;" onclick="promptEditStock(\'' + book._id + '\', ' + stock + ')">Edit</button>' +
         '<button class="btn-sm btn-danger" data-action="delete-book" data-id="' + book._id + '">Delete</button>' +
       '</td>' +
     '</tr>';
@@ -380,7 +472,7 @@
 
       booksList.innerHTML = books.map(renderBookRow).join('');
       setMsg(booksMessage, books.length + ' books loaded.');
-      updateStats(books.length);
+      updateStats(books);
 
       // Bind Delete Buttons
       booksList.querySelectorAll('[data-action="delete-book"]').forEach(function (btn) {
@@ -459,6 +551,8 @@
           title:       bookTitle,
           author:      (document.getElementById('bookAuthor')?.value || '').trim(),
           price:       Number(document.getElementById('bookPrice')?.value || 0),
+          stockQuantity: Number(document.getElementById('bookStock')?.value || 0),
+          sellerId:    document.getElementById('bookSellerId')?.value || undefined,
           category:    document.getElementById('bookCategory')?.value || '',
           description: (document.getElementById('bookDescription')?.value || '').trim(),
           featured:    !!document.getElementById('bookFeatured')?.checked,
@@ -502,6 +596,7 @@
   /* ── Init ── */
   fetchAndRenderBuyers();
   fetchAndRenderSellers();
+  fetchLiveOrders();
   renderActivity();
   loadAdminBooks();
 

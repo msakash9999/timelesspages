@@ -55,6 +55,23 @@ const bookSchema = new mongoose.Schema(
     lowStockAlert: {
       type: Boolean,
       default: false
+    },
+    reservedStock: {
+      type: Number,
+      default: 0
+    },
+    demandScore: {
+      type: Number,
+      default: 0
+    },
+    inventoryStatus: {
+      type: String,
+      enum: ['In Stock', 'Low Stock', 'Out of Stock'],
+      default: 'In Stock'
+    },
+    restockRecommendation: {
+      type: Number,
+      default: 0
     }
   },
   {

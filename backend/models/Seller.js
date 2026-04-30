@@ -28,7 +28,23 @@ const sellerSchema = new mongoose.Schema(
       default: false
     },
     otp: String,
-    otpExpires: Date
+    otpExpires: Date,
+    sellerRevenue: {
+      type: Number,
+      default: 0
+    },
+    sellerInventory: {
+      type: Number,
+      default: 0
+    },
+    sellerAlerts: [
+      {
+        message: String,
+        type: { type: String, enum: ['Low Stock', 'Fast Selling', 'High Demand', 'Returned', 'Cancelled'] },
+        read: { type: Boolean, default: false },
+        createdAt: { type: Date, default: Date.now }
+      }
+    ]
   },
   {
     timestamps: true

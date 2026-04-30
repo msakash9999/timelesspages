@@ -152,7 +152,7 @@ function addToCart(card) {
   const existingItem = cartItems.find((item) => item.title === book.title);
 
   if (existingItem) {
-    existingItem.qty += 1;
+    if (existingItem.qty >= 3) { alert("Maximum 3 units per product allowed."); return; } existingItem.qty += 1;
   } else {
     cartItems.push({ ...book, qty: 1 });
   }
@@ -169,7 +169,7 @@ function changeCartItemQuantity(title, delta) {
     return;
   }
 
-  item.qty += delta;
+  if (delta > 0 && item.qty >= 3) { alert("Maximum 3 units per product allowed."); return; } item.qty += delta;
 
   if (item.qty <= 0) {
     saveCart(cartItems.filter((entry) => entry.title !== title));

@@ -17,6 +17,25 @@ module.exports = function (app, requireUser) {
       const { items, shippingDetails, advancePayment } = req.body;
       if (!items || items.length === 0) return res.status(400).json({ message: "Cart is empty" });
 
+      // Validate Stock and Quantities Before Checkout
+      for (const item of items) {
+        if (item.qty < 1) return res.status(400).json({ message: "Minimum quantity per order is 1" });
+        if (item.qty > 3) return res.status(400).json({ message: "Maximum quantity per product is 3" });
+        
+        let book;
+        if (item.bookId && mongoose.Types.ObjectId.isValid(item.bookId)) {
+          book = await Book.findById(item.bookId);
+        } else if (item.title) {
+          book = await Book.findOne({ title: item.title });
+        }
+        
+        if (!book) return res.status(400).json({ message: `Product not found: ${item.title}` });
+        if (book.stockQuantity <= 0) return res.status(400).json({ message: `${item.title} is Out of Stock` });
+        if (item.qty > book.stockQuantity) {
+          return res.status(400).json({ message: `Requested quantity for ${item.title} exceeds available stock (${book.stockQuantity})` });
+        }
+      }
+
       // Build line items for Stripe
       const lineItems = items.map(item => ({
         price_data: {
@@ -131,24 +150,50 @@ module.exports = function (app, requireUser) {
 
           // Deduct stock and increase soldCount
           for (const item of payment.items) {
+            let book;
             if (item.bookId && mongoose.Types.ObjectId.isValid(item.bookId)) {
-              const book = await Book.findById(item.bookId);
-              if (book) {
-                const currentStock = book.stockQuantity || 10;
-                book.stockQuantity = Math.max(0, currentStock - (item.qty || 1));
-                book.soldCount = (book.soldCount || 0) + (item.qty || 1);
-                if (book.stockQuantity < 5) book.lowStockAlert = true;
-                await book.save();
-              }
+              book = await Book.findById(item.bookId);
             } else if (item.title) {
-               const book = await Book.findOne({ title: item.title });
-               if (book) {
-                 const currentStock = book.stockQuantity || 10;
-                 book.stockQuantity = Math.max(0, currentStock - (item.qty || 1));
-                 book.soldCount = (book.soldCount || 0) + (item.qty || 1);
-                 if (book.stockQuantity < 5) book.lowStockAlert = true;
-                 await book.save();
-               }
+               book = await Book.findOne({ title: item.title });
+            }
+            
+            if (book) {
+              const currentStock = book.stockQuantity || 0;
+              book.stockQuantity = Math.max(0, currentStock - (item.qty || 1));
+              book.soldCount = (book.soldCount || 0) + (item.qty || 1);
+              book.inventoryStatus = book.stockQuantity <= 0 ? 'Out of Stock' : (book.stockQuantity <= 5 ? 'Low Stock' : 'In Stock');
+              
+              if (book.stockQuantity <= 5) {
+                book.lowStockAlert = true;
+                const adminEmail = process.env.EMAIL_USER || "admin@timelesspages.com";
+                try {
+                  await sendEmail(adminEmail, `Low Stock Warning: ${book.title}`, `
+                    <h3>Low Stock Alert</h3>
+                    <p>Product: ${book.title}</p>
+                    <p>Remaining Stock: ${book.stockQuantity}</p>
+                    <p>Suggested Restock: 20</p>
+                    <p>Sold Total: ${book.soldCount}</p>
+                  `);
+                } catch (err) {
+                  console.error("Low stock email failed:", err);
+                }
+              }
+              await book.save();
+              
+              if (book.sellerId) {
+                const Seller = require("../models/Seller");
+                const seller = await Seller.findById(book.sellerId);
+                if (seller) {
+                  seller.sellerRevenue = (seller.sellerRevenue || 0) + (item.price * item.qty);
+                  if (book.stockQuantity <= 5) {
+                    seller.sellerAlerts.push({
+                      message: `Low stock for ${book.title}. Only ${book.stockQuantity} left.`,
+                      type: 'Low Stock'
+                    });
+                  }
+                  await seller.save();
+                }
+              }
             }
           }
 

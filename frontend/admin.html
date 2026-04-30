@@ -22,10 +22,16 @@
                 <span class="nav-icon">👥</span> User Management
             </button>
             <button class="sidebar-link" data-section="products">
-                <span class="nav-icon">📚</span> Products
+                <span class="nav-icon">📚</span> Products & Inventory
             </button>
             <button class="sidebar-link" data-section="add-book">
                 <span class="nav-icon">➕</span> Add Book
+            </button>
+            <button class="sidebar-link" data-section="notifications">
+                <span class="nav-icon">🔔</span> Alerts & Notifications
+            </button>
+            <button class="sidebar-link" data-section="analytics">
+                <span class="nav-icon">📈</span> Advanced Analytics
             </button>
         </nav>
 
@@ -67,6 +73,29 @@
                 <div class="stat-icon">🚫</div>
                 <div class="stat-value" id="statBlocked">0</div>
                 <div class="stat-label">Blocked Users</div>
+            </div>
+        </div>
+
+        <div class="stats-grid" style="margin-top: 20px;">
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-value" id="statTotalStock">0</div>
+                <div class="stat-label">Total Stock Remaining</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🛒</div>
+                <div class="stat-value" id="statSoldCount">0</div>
+                <div class="stat-label">Total Books Sold</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💸</div>
+                <div class="stat-value" id="statRevenue">₹0</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚠️</div>
+                <div class="stat-value" id="statLowStock" style="color:#e74c3c;">0</div>
+                <div class="stat-label" style="color:#e74c3c;font-weight:bold;">Low Stock Alerts</div>
             </div>
         </div>
 
@@ -158,7 +187,9 @@
                                 <th>Product</th>
                                 <th>Category</th>
                                 <th class="hide-mobile">Price</th>
-                                <th>In Stock</th>
+                                <th>Stock</th>
+                                <th>Sold</th>
+                                <th>Demand</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -178,6 +209,12 @@
                     <div class="form-row">
                         <input type="text" id="bookTitle" placeholder="Book Title" required>
                         <input type="text" id="bookAuthor" placeholder="Author Name" required>
+                    </div>
+                    <div class="form-row">
+                        <input type="number" id="bookStock" placeholder="Stock Quantity" min="0" required>
+                        <select id="bookSellerId">
+                            <option value="">Assign Seller (Optional)</option>
+                        </select>
                     </div>
                     <div class="form-row">
                         <input type="number" id="bookPrice" placeholder="Price (₹)" min="1" required>
@@ -206,8 +243,59 @@
                 <p id="adminFormMessage" class="panel-message" aria-live="polite"></p>
             </div>
         </div>
+
+        <!-- ════════ SECTION: NOTIFICATIONS ════════ -->
+        <div class="section-panel" id="section-notifications">
+            <div class="panel-card">
+                <h2>Notification Center</h2>
+                <div id="notificationList" style="display:flex;flex-direction:column;gap:15px;margin-top:15px;">
+                    <!-- Notifications JS injected -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════ SECTION: ANALYTICS ════════ -->
+        <div class="section-panel" id="section-analytics">
+            <div class="panel-card">
+                <h2>User Analytics & Performance</h2>
+                <div class="stats-grid" style="margin-bottom:20px;">
+                    <div class="stat-card" style="background:#f8f9fa;">
+                        <h3 style="margin-bottom:10px;font-size:14px;color:#555;">Top Selling Book</h3>
+                        <p id="topBookValue" style="font-size:18px;font-weight:bold;color:#8B7355;">-</p>
+                    </div>
+                    <div class="stat-card" style="background:#f8f9fa;">
+                        <h3 style="margin-bottom:10px;font-size:14px;color:#555;">Dead Inventory</h3>
+                        <p id="deadInvValue" style="font-size:18px;font-weight:bold;color:#e74c3c;">-</p>
+                    </div>
+                    <div class="stat-card" style="background:#f8f9fa;">
+                        <h3 style="margin-bottom:10px;font-size:14px;color:#555;">Total Cancellations</h3>
+                        <p id="cancelValue" style="font-size:18px;font-weight:bold;color:#333;">0</p>
+                    </div>
+                    <div class="stat-card" style="background:#f8f9fa;">
+                        <h3 style="margin-bottom:10px;font-size:14px;color:#555;">Total Returns</h3>
+                        <p id="returnValue" style="font-size:18px;font-weight:bold;color:#333;">0</p>
+                    </div>
+                </div>
+                <h3>Recent Live Orders (Map Tracking Available)</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Location/Tracking</th>
+                        </tr>
+                    </thead>
+                    <tbody id="liveOrdersTable">
+                        <tr><td colspan="5">No active orders</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </main>
 
-    <script src="admin.js?v=3"></script>
+    <script src="admin.js?v=4"></script>
 </body>
 </html>

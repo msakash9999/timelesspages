@@ -56,7 +56,21 @@ const orderSchema = new mongoose.Schema(
       enum: ["Return Requested", "Return Approved", "Return Rejected", "Refunded"]
     },
     cancelledAt: Date,
-    returnedAt: Date
+    returnedAt: Date,
+    trackingLocation: {
+      type: String,
+      default: 'Warehouse'
+    },
+    mapCoordinates: {
+      lat: { type: Number },
+      lng: { type: Number }
+    },
+    deliveryETA: {
+      type: Date
+    },
+    courierPartner: {
+      type: String
+    }
   },
   {
     timestamps: true

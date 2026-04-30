@@ -21,15 +21,51 @@
     </nav>
 
     <div class="dashboard-container">
-        <div class="panel-card">
+        <!-- Seller Analytics -->
+        <div class="stats-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:20px;margin-bottom:30px;">
+            <div class="stat-card" style="background:#fff;padding:20px;border-radius:10px;box-shadow:0 5px 15px rgba(0,0,0,0.05);">
+                <div style="font-size:24px;margin-bottom:10px;">📚</div>
+                <div id="sellerTotalBooks" style="font-size:24px;font-weight:bold;color:#333;">0</div>
+                <div style="color:#777;font-size:14px;">Total Books Listed</div>
+            </div>
+            <div class="stat-card" style="background:#fff;padding:20px;border-radius:10px;box-shadow:0 5px 15px rgba(0,0,0,0.05);">
+                <div style="font-size:24px;margin-bottom:10px;">🛒</div>
+                <div id="sellerTotalSold" style="font-size:24px;font-weight:bold;color:#333;">0</div>
+                <div style="color:#777;font-size:14px;">Total Books Sold</div>
+            </div>
+            <div class="stat-card" style="background:#fff;padding:20px;border-radius:10px;box-shadow:0 5px 15px rgba(0,0,0,0.05);">
+                <div style="font-size:24px;margin-bottom:10px;">💸</div>
+                <div id="sellerRevenue" style="font-size:24px;font-weight:bold;color:#333;">₹0</div>
+                <div style="color:#777;font-size:14px;">Total Revenue</div>
+            </div>
+            <div class="stat-card" style="background:#fff;padding:20px;border-radius:10px;box-shadow:0 5px 15px rgba(0,0,0,0.05);">
+                <div style="font-size:24px;margin-bottom:10px;">⚠️</div>
+                <div id="sellerLowStock" style="font-size:24px;font-weight:bold;color:#e74c3c;">0</div>
+                <div style="color:#e74c3c;font-size:14px;font-weight:bold;">Low Stock Alerts</div>
+            </div>
+        </div>
+
+        <!-- Notification Panel -->
+        <div class="panel-card" style="margin-bottom:30px;">
+            <h2>Seller Notifications</h2>
+            <div id="sellerNotifications">
+                <p style="color:#777;">No new alerts.</p>
+            </div>
+        </div>
+
+        <div class="panel-card" style="margin-bottom:30px;">
             <h2>Publish a New Book</h2>
             <form id="sellerBookForm" class="seller-form">
                 <div class="form-row">
                     <input type="text" id="bookTitle" placeholder="Book Title" required>
                     <input type="text" id="bookAuthor" placeholder="Author Name" required>
                 </div>
+                </div>
                 <div class="form-row">
+                    <input type="number" id="bookStock" placeholder="Stock Quantity" min="0" required>
                     <input type="number" id="bookPrice" placeholder="Price (₹)" min="1" required>
+                </div>
+                <div class="form-row">
                     <select id="bookCategory" required>
                         <option value="">Select Category</option>
                         <option value="story">Story</option>
@@ -60,8 +96,23 @@
 
         <div class="panel-card">
             <h2>Your Catalog</h2>
-            <!-- Sellers can view books they've already added -->
-            <div id="booksList"></div>
+            <div style="overflow-x:auto;">
+                <table class="data-table" style="width:100%;border-collapse:collapse;margin-top:15px;text-align:left;">
+                    <thead>
+                        <tr style="border-bottom:2px solid #eee;">
+                            <th style="padding:10px;">Product</th>
+                            <th style="padding:10px;">Price</th>
+                            <th style="padding:10px;">Stock</th>
+                            <th style="padding:10px;">Sold</th>
+                            <th style="padding:10px;">Demand</th>
+                            <th style="padding:10px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="booksList">
+                        <!-- Rendered by JS -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
