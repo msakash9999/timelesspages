@@ -609,7 +609,7 @@ app.post("/api/auth/login", async (req, res) => {
       const forwardedFor = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
       const ipAddress = forwardedFor || req.socket?.remoteAddress || req.ip || "Unknown";
       const userAgent = String(req.headers["user-agent"] || "Unknown device");
-      
+
       await LoginHistory.create({
         userId: user._id,
         ipAddress,

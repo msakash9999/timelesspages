@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimelessPages - Category</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="darkmode.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .category-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            margin: 20px 0;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-box input {
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid #444;
+            background: #222;
+            color: white;
+            width: 300px;
+        }
+
+        .sort-box select {
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid #444;
+            background: #222;
+            color: white;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 40px;
+            padding-bottom: 40px;
+        }
+
+        .page-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #222;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .page-btn.active {
+            background: #8B7355;
+            border-color: #8B7355;
+        }
+
+        .page-btn:hover:not(.active) {
+            background: #333;
+        }
+
+        .no-books {
+            text-align: center;
+            padding: 100px;
+            font-size: 1.2rem;
+            color: #777;
+        }
+
+        /* Matching existing theme */
+        .card-category {
+            font-size: 0.75rem;
+            color: #8B7355;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .card-rating {
+            margin: 10px 0;
+            color: #f1c40f;
+            font-size: 0.9rem;
+        }
+
+        .rating-value {
+            color: #777;
+            margin-left: 5px;
+        }
+
+        .card-price-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .discount-price {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #f5f0eb;
+        }
+
+        .original-price {
+            font-size: 0.9rem;
+            text-decoration: line-through;
+            color: #777;
+        }
+    </style>
+    <script src="darkmode.js"></script>
+</head>
+
+<body data-book-category="" data-skip-book-load="true">
+    <main class="page">
+        <section class="hero-shell">
+            <nav class="top-nav">
+                <a href="index.html" class="brand">TimelessPages</a>
+                <div class="menu">
+                    <a href="home.html">Home</a>
+                    <div class="menu-item books-menu">
+                        <a href="book.html" class="books-link">Books</a>
+                        <div class="books-dropdown" id="navbar-dropdown">
+                            <!-- Populated via script or manually below -->
+                        </div>
+                    </div>
+                </div>
+                <div class="actions">
+                    <div class="session-box">
+                        <a href="login.html" id="loginLink">Login</a>
+                    </div>
+                    <div class="dm-toggle-wrapper">
+                        <label class="dm-toggle" aria-label="Toggle dark mode">
+                            <input type="checkbox" id="darkModeToggle">
+                            <span class="dm-toggle-track"></span>
+                            <span class="dm-toggle-knob">
+                                <span class="icon-sun">☀️</span>
+                                <span class="icon-moon">🌙</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </nav>
+
+            <header class="hero-copy">
+                <h1>Explore Our Collection</h1>
+                <p>Discover thousands of handpicked books across all genres.</p>
+            </header>
+
+            <section class="products">
+                <div class="category-controls">
+                    <div class="search-box">
+                        <input type="text" id="category-search" placeholder="Search in this category...">
+                    </div>
+                    <div class="sort-box">
+                        <select id="sort-select">
+                            <option value="newest">New Arrival</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
+                            <option value="rating">Top Rated</option>
+                            <option value="bestseller">Bestseller</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="product-grid" id="product-grid">
+                    <!-- Books will be rendered here -->
+                </div>
+
+                <div class="pagination" id="pagination">
+                    <!-- Pagination buttons -->
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script src="booksData.js"></script>
+    <script src="dropdown.js"></script>
+    <script src="userPersistenceManager.js"></script>
+    <script src="catalog.js"></script>
+    <script src="renderBooks.js"></script>
+    <script src="categoryLoader.js"></script>
+    <script src="categoryRouter.js"></script>
+    
+    <script>
+        // Populate dropdown dynamically in this template to avoid huge HTML
+        const categories = [
+            "Fiction", "Non-Fiction", "Mystery", "Thriller", "Romance", 
+            "Biography", "Self Help", "Business", "Finance", "Programming", 
+            "Technology", "Science", "Medical", "Engineering", "Law", 
+            "History", "Religion", "Philosophy", "Psychology", "Children", 
+            "Comics", "Manga", "Horror", "Fantasy", "Literature", 
+            "UPSC / Government Exams", "SSC / Banking", "School Books", 
+            "College Books", "Competitive Exams"
+        ];
+        
+        const dropdown = document.getElementById('navbar-dropdown');
+        if (dropdown) {
+            dropdown.innerHTML = categories.map(cat => 
+                `<a href="category.html?type=${encodeURIComponent(cat)}">${cat}</a>`
+            ).join('');
+        }
+    </script>
+</body>
+
+</html>
