@@ -383,3 +383,9 @@ body {
         max-width: 120px;
     }
 }
+
+.mobile-only { display: none; }
+@media (max-width: 900px) {
+    .mobile-only { display: block; }
+    .sidebar.mobile-active { display: flex; width: 100%; height: 100%; background: rgba(0,0,0,0.95); }
+}

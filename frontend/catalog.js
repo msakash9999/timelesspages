@@ -601,6 +601,7 @@ function injectCartDrawer() {
     </div>
     <div id="tp-cart-items"></div>
     <div class="cd-foot">
+      <div id="tp-coupon-container" style="margin-bottom: 15px;"></div>
       <div class="cd-total"><span>Selected Total</span><span id="cd-total-price">₹0</span></div>
       <button class="cd-checkout" id="cd-checkout-btn">Proceed to Checkout →</button>
     </div>
@@ -928,6 +929,11 @@ function renderCartDrawer() {
       showToast('Item removed from cart.', 'wish');
     });
   });
+
+  // Inject Coupon UI
+  if (window.CouponEngine) {
+    window.CouponEngine.injectUI('tp-coupon-container');
+  }
 }
 
 function isWished(id) { return getWishlist().some(w => w.id === id); }

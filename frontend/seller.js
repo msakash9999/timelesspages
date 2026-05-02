@@ -29,6 +29,22 @@
     window.location.href = 'seller-login.html';
   });
 
+  /* ── Sidebar/Tab Navigation ── */
+  document.querySelectorAll('.tab-btn[data-section]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var section = this.getAttribute('data-section');
+      document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      document.querySelectorAll('.seller-section').forEach(function (s) { s.style.display = 'none'; s.classList.remove('active'); });
+      var target = document.getElementById('section-' + section);
+      if (target) {
+        target.style.display = 'block';
+        target.classList.add('active');
+        if (section === 'seller-insights' && window.SellerInsights) window.SellerInsights.init();
+      }
+    });
+  });
+
   /* ── DOM Elements ── */
   var bookForm = document.getElementById('sellerBookForm');
   var formMessage = document.getElementById('sellerFormMessage');

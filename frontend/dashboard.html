@@ -8,6 +8,7 @@
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="premium-ecommerce.css">
     <script src="darkmode.js"></script>
 </head>
 <body data-theme="light">
@@ -314,6 +315,7 @@
     </div>
 
     <script src="userPersistenceManager.js"></script>
+    <script src="returnSystem.js"></script>
     <script>
         // --- INITIALIZATION ---
         lucide.createIcons();
@@ -793,12 +795,12 @@
                     timelineHtml += '</div>';
 
                     let actionHtml = '';
-                    if (order.orderStatus !== "Out For Delivery" && order.orderStatus !== "Delivered" && order.orderStatus !== "CANCELLED") {
-                        actionHtml = `<button onclick="cancelOrder('${order._id}')" style="padding: 6px 12px; background: #fff; border: 1px solid #e74c3c; color: #e74c3c; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">Cancel Order</button>`;
+                    if (order.orderStatus === 'Confirmed' || order.orderStatus === 'In Progress' || order.orderStatus === 'Packed') {
+                        actionHtml = `<button class="btn-cancel-order" onclick="window.ReturnSystem.openCancelModal('${order._id}', () => fetchOrders())">Cancel Order</button>`;
                     } else if (order.orderStatus === "Delivered") {
-                        const days = (Date.now() - new Date(order.createdAt).getTime() - 120 * 60 * 60 * 1000) / (1000 * 60 * 60 * 24);
+                        const days = (Date.now() - new Date(order.createdAt).getTime()) / (1000 * 60 * 60 * 24);
                         if (days <= 7 && !order.returnStatus) {
-                            actionHtml = `<button onclick="returnOrder('${order._id}')" style="padding: 6px 12px; background: #fff; border: 1px solid #3498db; color: #3498db; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">Return Order</button>`;
+                            actionHtml = `<button class="btn-return-order" onclick="window.ReturnSystem.openReturnModal('${order._id}', () => fetchOrders())">Return Order</button>`;
                         }
                     }
                     if (order.returnStatus) {

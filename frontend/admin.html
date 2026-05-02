@@ -5,8 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - TimelessPages</title>
     <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="premium-ecommerce.css">
 </head>
 <body>
+    <!-- ── Mobile Toggle ── -->
+    <button id="mobileMenuBtn" class="mobile-only" style="position:fixed; bottom:20px; right:20px; z-index:100; background:var(--db-accent); color:#111; border:none; padding:12px; border-radius:50%; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
+        ☰
+    </button>
+
     <!-- ── Sidebar ── -->
     <aside class="sidebar">
         <a href="index.html" class="sidebar-brand">
@@ -33,6 +39,15 @@
             <button class="sidebar-link" data-section="analytics">
                 <span class="nav-icon">📈</span> Advanced Analytics
             </button>
+            <button class="sidebar-link" data-section="discounts">
+                <span class="nav-icon">🏷️</span> Discount Manager
+            </button>
+            <button class="sidebar-link" data-section="live-tracking">
+                <span class="nav-icon">📍</span> Live Tracking
+            </button>
+            <button class="sidebar-link" data-section="analytics-center">
+                <span class="nav-icon">📊</span> Analytics Center
+            </button>
         </nav>
 
         <div class="sidebar-footer">
@@ -47,60 +62,59 @@
 
     <!-- ── Main ── -->
     <main class="main-content">
-        <div class="page-header">
-            <h1>Welcome, <span id="adminName">Admin</span></h1>
-            <span class="admin-badge">🔐 Admin</span>
-        </div>
-
-        <!-- ── Stats ── -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">📚</div>
-                <div class="stat-value" id="statBooks">0</div>
-                <div class="stat-label">Total Books</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">👤</div>
-                <div class="stat-value" id="statBuyers">0</div>
-                <div class="stat-label">Buyers</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🏪</div>
-                <div class="stat-value" id="statSellers">0</div>
-                <div class="stat-label">Sellers</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🚫</div>
-                <div class="stat-value" id="statBlocked">0</div>
-                <div class="stat-label">Blocked Users</div>
-            </div>
-        </div>
-
-        <div class="stats-grid" style="margin-top: 20px;">
-            <div class="stat-card">
-                <div class="stat-icon">📦</div>
-                <div class="stat-value" id="statTotalStock">0</div>
-                <div class="stat-label">Total Stock Remaining</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🛒</div>
-                <div class="stat-value" id="statSoldCount">0</div>
-                <div class="stat-label">Total Books Sold</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">💸</div>
-                <div class="stat-value" id="statRevenue">₹0</div>
-                <div class="stat-label">Total Revenue</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">⚠️</div>
-                <div class="stat-value" id="statLowStock" style="color:#e74c3c;">0</div>
-                <div class="stat-label" style="color:#e74c3c;font-weight:bold;">Low Stock Alerts</div>
-            </div>
-        </div>
-
         <!-- ════════ SECTION: DASHBOARD ════════ -->
         <div class="section-panel active" id="section-dashboard">
+            <div class="page-header">
+                <h1>Welcome, <span id="adminName">Admin</span></h1>
+                <span class="admin-badge">🔐 Admin</span>
+            </div>
+
+            <!-- ── Stats ── -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📚</div>
+                    <div class="stat-value" id="statBooks">0</div>
+                    <div class="stat-label">Total Books</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👤</div>
+                    <div class="stat-value" id="statBuyers">0</div>
+                    <div class="stat-label">Buyers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🏪</div>
+                    <div class="stat-value" id="statSellers">0</div>
+                    <div class="stat-label">Sellers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🚫</div>
+                    <div class="stat-value" id="statBlocked">0</div>
+                    <div class="stat-label">Blocked Users</div>
+                </div>
+            </div>
+
+            <div class="stats-grid" style="margin-top: 20px;">
+                <div class="stat-card">
+                    <div class="stat-icon">📦</div>
+                    <div class="stat-value" id="statTotalStock">0</div>
+                    <div class="stat-label">Total Stock Remaining</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🛒</div>
+                    <div class="stat-value" id="statSoldCount">0</div>
+                    <div class="stat-label">Total Books Sold</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💸</div>
+                    <div class="stat-value" id="statRevenue">₹0</div>
+                    <div class="stat-label">Total Revenue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-value" id="statLowStock" style="color:#e74c3c;">0</div>
+                    <div class="stat-label" style="color:#e74c3c;font-weight:bold;">Low Stock Alerts</div>
+                </div>
+            </div>
             <div class="panel-card">
                 <h2>Recent Activity</h2>
                 <table class="data-table">
@@ -121,6 +135,9 @@
 
         <!-- ════════ SECTION: USER MANAGEMENT ════════ -->
         <div class="section-panel" id="section-users">
+            <div class="page-header">
+                <h1>User Management</h1>
+            </div>
         <div class="tab-bar">
             <button class="tab-btn active" data-tab="buyers">👤 Buyers</button>
             <button class="tab-btn" data-tab="sellers">🏪 Sellers</button>
@@ -174,6 +191,9 @@
 
         <!-- ════════ SECTION: PRODUCTS ════════ -->
         <div class="section-panel" id="section-products">
+            <div class="page-header">
+                <h1>Products & Inventory</h1>
+            </div>
             <div class="panel-card">
                 <div class="list-head">
                     <h2>All Books</h2>
@@ -203,6 +223,9 @@
 
         <!-- ════════ SECTION: ADD BOOK ════════ -->
         <div class="section-panel" id="section-add-book">
+            <div class="page-header">
+                <h1>Add New Content</h1>
+            </div>
             <div class="panel-card">
                 <h2>Add New Book</h2>
                 <form id="bookForm" class="admin-form">
@@ -246,6 +269,9 @@
 
         <!-- ════════ SECTION: NOTIFICATIONS ════════ -->
         <div class="section-panel" id="section-notifications">
+            <div class="page-header">
+                <h1>Alerts & System Notifications</h1>
+            </div>
             <div class="panel-card">
                 <h2>Notification Center</h2>
                 <div id="notificationList" style="display:flex;flex-direction:column;gap:15px;margin-top:15px;">
@@ -256,6 +282,9 @@
 
         <!-- ════════ SECTION: ANALYTICS ════════ -->
         <div class="section-panel" id="section-analytics">
+            <div class="page-header">
+                <h1>User Analytics & Performance</h1>
+            </div>
             <div class="panel-card">
                 <h2>User Analytics & Performance</h2>
                 <div class="stats-grid" style="margin-bottom:20px;">
@@ -293,9 +322,35 @@
                 </table>
             </div>
         </div>
+        <!-- ════════ SECTION: DISCOUNTS ════════ -->
+        <div class="section-panel" id="section-discounts">
+            <div class="page-header">
+                <h1>Discount Manager</h1>
+            </div>
+            <!-- Rendered by discountManager.js -->
+        </div>
 
+        <!-- ════════ SECTION: LIVE TRACKING ════════ -->
+        <div class="section-panel" id="section-live-tracking">
+            <div class="page-header">
+                <h1>Live Shipment Tracking</h1>
+            </div>
+            <!-- Rendered by mapTracking.js -->
+        </div>
+
+        <!-- ════════ SECTION: ANALYTICS CENTER ════════ -->
+        <div class="section-panel" id="section-analytics-center">
+            <div class="page-header">
+                <h1>Advanced Analytics Center</h1>
+            </div>
+            <!-- Rendered by analyticsManager.js -->
+        </div>
     </main>
 
+    <script src="stockBadge.js"></script>
+    <script src="discountManager.js"></script>
+    <script src="mapTracking.js"></script>
+    <script src="analyticsManager.js"></script>
     <script src="admin.js?v=4"></script>
 </body>
 </html>

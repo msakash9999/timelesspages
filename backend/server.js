@@ -14,6 +14,9 @@ const Seller = require("./models/Seller");
 const Address = require("./models/Address");
 const LoginHistory = require("./models/LoginHistory");
 const DashboardStats = require("./models/DashboardStats");
+const DiscountCampaign = require("./models/DiscountCampaign");
+const Coupon = require("./models/Coupon");
+const Order = require("./models/Order");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { sendEmail } = require("./utils/mailer");
@@ -460,6 +463,7 @@ mongoose.connect(process.env.MONGODB_URI)
     console.log("MongoDB connected");
     await seedAdmin();
     await seedBooks();
+    await seedCoupons();
   })
   .catch((err) => console.log("MongoDB error:", err));
 
@@ -474,6 +478,19 @@ async function seedBooks() {
     } catch (err) {
       console.warn(`Failed to seed book: ${book.title}`, err.message);
     }
+  }
+}
+
+async function seedCoupons() {
+  const existing = await Coupon.findOne({ code: "TRINITY" });
+  if (!existing) {
+    await Coupon.create({
+      code: "TRINITY",
+      discountPercent: 30,
+      firstTimeOnly: true,
+      oneTimeUse: true
+    });
+    console.log("Seeded TRINITY coupon");
   }
 }
 
@@ -498,6 +515,90 @@ app.use("/api/payment", paymentRoutes(app, requireUser));
 app.use("/api/order", orderRoutes(app, requireUser));
 app.use("/api/orders", orderRoutes(app, requireUser)); // Fallback alias for robustness
 app.use("/api/user", dashboardRoutes(requireUser));
+
+// --- PREMIUM ECOMMERCE ROUTES ---
+
+// 1. Admin Analytics
+app.get("/api/admin/analytics", requireAdmin, async (req, res) => {
+  try {
+    const totalRevenue = await Order.aggregate([{ $match: { orderStatus: { $ne: "CANCELLED" } } }, { $group: { _id: null, total: { $sum: "$totalAmount" } } }]);
+    const totalOrders = await Order.countDocuments();
+    const deliveredOrders = await Order.countDocuments({ orderStatus: "Delivered" });
+    const cancelledOrders = await Order.countDocuments({ orderStatus: "CANCELLED" });
+    const returnedOrders = await Order.countDocuments({ returnStatus: "Return Requested" });
+    const lowStockCount = await Book.countDocuments({ stockQuantity: { $lte: 5 } });
+    
+    res.json({
+      totalRevenue: totalRevenue[0]?.total || 0,
+      totalOrders,
+      deliveredOrders,
+      cancelledOrders,
+      returnedOrders,
+      lowStockCount,
+      recentActivity: [] // Placeholder
+    });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// 2. Seller Analytics
+app.get("/api/seller/analytics", requireSeller, async (req, res) => {
+  try {
+    const sellerId = req.sellerSession.sellerId;
+    const books = await Book.find({ sellerId });
+    const totalBooks = books.length;
+    const totalSold = books.reduce((sum, b) => sum + (b.soldCount || 0), 0);
+    const lowStock = books.filter(b => b.stockQuantity <= 5).length;
+    
+    res.json({
+      totalBooks,
+      totalSold,
+      lowStock,
+      revenue: req.sellerSession.sellerRevenue || 0
+    });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// 3. Discount Management
+app.get("/api/admin/discounts", requireAdmin, async (req, res) => {
+  try {
+    const discounts = await DiscountCampaign.find();
+    res.json(discounts);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+app.post("/api/admin/discounts", requireAdmin, async (req, res) => {
+  try {
+    const campaign = new DiscountCampaign(req.body);
+    await campaign.save();
+    res.status(201).json(campaign);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// 4. Coupon Application
+app.post("/api/coupons/apply", requireUser, async (req, res) => {
+  try {
+    const { code } = req.body;
+    const userId = req.userSession.userId;
+    const coupon = await Coupon.findOne({ code: code.toUpperCase(), active: true });
+
+    if (!coupon) return res.status(404).json({ message: "Invalid or inactive coupon" });
+
+    if (coupon.firstTimeOnly) {
+      const pastOrders = await Order.countDocuments({ userId });
+      if (pastOrders > 0) return res.status(400).json({ message: "Coupon is for first-time users only" });
+    }
+
+    if (coupon.oneTimeUse && coupon.usedBy.includes(userId)) {
+      return res.status(400).json({ message: "You have already used this coupon" });
+    }
+
+    res.json({
+      success: true,
+      discountPercent: coupon.discountPercent,
+      message: `${code} applied successfully!`
+    });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
 
 app.post("/api/auth/register", async (req, res) => {
   try {

@@ -14,33 +14,22 @@ function formatCurrency(amount) {
 function createBookCard(book) {
     const { id, title, author, category, price, discountPrice, stock, rating, image, description } = book;
     
-    // Stock System Logic
-    let stockStatus = "";
-    let isOutOfStock = false;
-    let stockClass = "";
-
-    if (stock === 0) {
-        stockStatus = "Out of Stock";
-        isOutOfStock = true;
-        stockClass = "out-of-stock";
-    } else if (stock <= 3) {
-        stockStatus = `Only ${stock} Left`;
-        stockClass = "urgency";
-    } else if (stock <= 5) {
-        stockStatus = "Few Items Left";
-        stockClass = "warning";
-    }
+    // Stock System Logic - Integrated from StockBadge.js
+    const stockStatusHTML = window.StockBadge ? window.StockBadge.getBadgeHTML(stock) : '';
+    const isOutOfStock = stock === 0;
 
     const ratingStars = "★".repeat(Math.floor(rating)) + "☆".repeat(5 - Math.floor(rating));
 
     return `
-        <article class="product-card ${isOutOfStock ? 'out-of-stock' : ''}" data-id="${id}">
+        <article class="product-card ${isOutOfStock ? 'out-of-stock' : ''}" 
+            data-id="${id}"
+            data-title="${encodeURIComponent(title)}"
+            data-author="${encodeURIComponent(author)}"
+            data-price="${discountPrice}"
+            data-img="${encodeURIComponent(image)}">
             <div class="card-img-wrapper">
                 <img src="${image}" alt="${title}" loading="lazy">
-                ${stockStatus ? `<div class="premium-stock-badge ${stockClass}">
-                    ${stock > 0 ? '<span class="pulse-dot"></span>' : ''}
-                    ${stockStatus}
-                </div>` : ''}
+                ${stockStatusHTML}
                 ${isOutOfStock ? '<div class="out-of-stock-overlay"><span>Out of Stock</span></div>' : ''}
             </div>
             <div class="card-content">
@@ -56,8 +45,8 @@ function createBookCard(book) {
                     <span class="original-price">${formatCurrency(price)}</span>
                 </div>
                 <div class="storybook-actions">
-                    <button type="button" class="storybook-btn buy-btn" ${isOutOfStock ? 'disabled' : ''} onclick="handleBuyNow('${id}')">Buy Now</button>
-                    <button type="button" class="storybook-btn cart-btn" ${isOutOfStock ? 'disabled' : ''} onclick="handleAddToCart('${id}')">Add to Cart</button>
+                    <button type="button" class="storybook-btn buy-btn" ${isOutOfStock ? 'disabled' : ''}>Buy Now</button>
+                    <button type="button" class="storybook-btn cart-btn" ${isOutOfStock ? 'disabled' : ''}>Add to Cart</button>
                 </div>
             </div>
         </article>

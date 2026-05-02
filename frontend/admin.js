@@ -81,7 +81,16 @@
       this.classList.add('active');
       document.querySelectorAll('.section-panel').forEach(function (p) { p.classList.remove('active'); });
       var target = document.getElementById('section-' + section);
-      if (target) target.classList.add('active');
+      if (target) {
+        target.classList.add('active');
+        console.log('Switched to section:', section);
+        // Initialize Premium Modules
+        if (section === 'discounts' && window.DiscountManager) window.DiscountManager.init();
+        if (section === 'live-tracking' && window.MapTracking) window.MapTracking.init();
+        if (section === 'analytics-center' && window.AnalyticsManager) window.AnalyticsManager.init();
+      } else {
+        console.warn('Target section not found:', section);
+      }
     });
   });
 
@@ -342,7 +351,7 @@
     var tbody = document.getElementById('liveOrdersTable');
     if (!tbody) return;
     try {
-      var res = await requestJson('/admin/orders', {
+      var res = await requestJson('/api/admin/orders', {
         headers: { Authorization: 'Bearer ' + adminToken }
       });
       if (!res.response.ok) throw new Error(res.data.message || 'Failed to fetch orders');
@@ -599,5 +608,21 @@
   fetchLiveOrders();
   renderActivity();
   loadAdminBooks();
+
+  // Mobile Menu Toggle
+  const mobileBtn = document.getElementById('mobileMenuBtn');
+  const sidebar = document.querySelector('.sidebar');
+  if (mobileBtn && sidebar) {
+    mobileBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('mobile-active');
+    });
+
+    // Close sidebar on link click (mobile)
+    sidebar.querySelectorAll('.sidebar-link').forEach(link => {
+        link.addEventListener('click', () => {
+            sidebar.classList.remove('mobile-active');
+        });
+    });
+  }
 
 })();

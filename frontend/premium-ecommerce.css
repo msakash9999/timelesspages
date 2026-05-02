@@ -1,0 +1,268 @@
+/* premium-ecommerce.css */
+
+/* Stock Badges */
+.premium-stock-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    margin-top: 10px;
+    background: #fff;
+    border: 1px solid #eee;
+}
+
+.premium-stock-badge.warning {
+    color: #f39c12;
+    background: #fef9e7;
+    border-color: #fcf3cf;
+}
+
+.premium-stock-badge.urgency {
+    color: #e67e22;
+    background: #fdf2e9;
+    border-color: #fae5d3;
+    animation: pulse-soft 2s infinite;
+}
+
+.premium-stock-badge.out-of-stock {
+    color: #e74c3c;
+    background: #fdedec;
+    border-color: #fadbd8;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background-color: currentColor;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+}
+
+.pulse-dot::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: currentColor;
+    border-radius: 50%;
+    animation: dot-pulse 1.5s infinite;
+}
+
+@keyframes dot-pulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(2.5); opacity: 0; }
+}
+
+@keyframes pulse-soft {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+/* Glassmorphism Effects */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+}
+
+/* Premium Shadows */
+.premium-shadow {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.premium-shadow:hover {
+    box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+}
+
+/* Bestseller Ribbon */
+.bestseller-ribbon {
+    position: absolute;
+    top: 15px;
+    right: -5px;
+    background: #8B7355;
+    color: #fff;
+    padding: 5px 15px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    z-index: 10;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+}
+
+.bestseller-ribbon::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    right: 0;
+    border-left: 5px solid transparent;
+    border-top: 5px solid #5a4a37;
+}
+
+/* Analytics Charts */
+.chart-container {
+    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+/* Coupon Styles */
+.coupon-tag {
+    background: #fdfaf7;
+    border: 1px dashed #8B7355;
+    color: #8B7355;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* Discount Badge */
+.discount-badge {
+    background: #e74c3c;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: 8px;
+}
+
+/* Return Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-card {
+    background: #fff;
+    width: min(500px, 95%);
+    border-radius: 15px;
+    padding: 30px;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+}
+
+.modal-overlay.active .modal-card {
+    transform: translateY(0);
+}
+
+.modal-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.reason-select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-family: inherit;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.modal-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: 0.2s;
+}
+
+.modal-btn.primary {
+    background: #8B7355;
+    color: #fff;
+}
+
+.modal-btn.secondary {
+    background: #f5f5f5;
+    color: #666;
+}
+
+.modal-btn:hover {
+    filter: brightness(0.9);
+}
+
+/* Order Actions */
+.btn-cancel-order {
+    padding: 8px 16px;
+    background: transparent;
+    color: #ff4757;
+    border: 1.5px solid #ff4757;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-cancel-order:hover {
+    background: #ff4757;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.2);
+    transform: translateY(-1px);
+}
+
+.btn-return-order {
+    padding: 8px 16px;
+    background: transparent;
+    color: #3498db;
+    border: 1.5px solid #3498db;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-return-order:hover {
+    background: #3498db;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+    transform: translateY(-1px);
+}
