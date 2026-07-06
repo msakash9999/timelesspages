@@ -389,3 +389,303 @@ body {
     .mobile-only { display: block; }
     .sidebar.mobile-active { display: flex; width: 100%; height: 100%; background: rgba(0,0,0,0.95); }
 }
+
+/* ── Live Shipment Tracking Styling Overhaul ── */
+
+.tracking-control-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.tracking-search-input {
+    flex: 1;
+    min-width: 200px;
+    background: #111;
+    border: 1px solid var(--db-border);
+    color: var(--db-text);
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    transition: border-color 0.2s;
+}
+.tracking-search-input:focus {
+    outline: none;
+    border-color: var(--db-accent);
+}
+
+.tracking-filter-group {
+    display: flex;
+    gap: 6px;
+}
+
+.tracking-filter-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 20px;
+    background: transparent;
+    border: 1px solid var(--db-border);
+    color: var(--db-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.tracking-filter-btn:hover {
+    color: var(--db-text);
+    border-color: var(--db-muted);
+}
+.tracking-filter-btn.active {
+    background: var(--db-accent);
+    color: #111;
+    border-color: var(--db-accent);
+}
+
+/* Shipment Cards */
+.shipment-card {
+    background: #151515 !important;
+    border: 1px solid var(--db-border) !important;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+.shipment-card:hover {
+    background: #1a1a1a !important;
+    border-color: #3a3a3a !important;
+    transform: translateY(-2px);
+}
+.shipment-card.active {
+    border-color: var(--db-accent) !important;
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.15);
+    background: #1e1b12 !important;
+}
+
+.shipment-card-detail {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: all 0.3s ease-in-out;
+}
+.shipment-card.active .shipment-card-detail {
+    max-height: 250px;
+    opacity: 1;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed var(--db-border);
+}
+
+/* Marker Styles */
+.custom-tracking-marker {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.marker-icon-wrapper {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    z-index: 2;
+    border: 2px solid #000;
+    box-shadow: 0 0 8px rgba(0,0,0,0.5);
+    transition: all 0.2s ease;
+}
+.marker-pulse {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    z-index: 1;
+    animation: marker-pulse-anim 2s infinite ease-out;
+    pointer-events: none;
+}
+
+/* Marker Status Colors */
+.custom-tracking-marker.status-packed .marker-icon-wrapper { background: #d4af37; color: #111; }
+.custom-tracking-marker.status-packed .marker-pulse { background: rgba(212, 175, 55, 0.3); }
+
+.custom-tracking-marker.status-shipped .marker-icon-wrapper { background: #3498db; color: #fff; }
+.custom-tracking-marker.status-shipped .marker-pulse { background: rgba(52, 152, 219, 0.3); }
+
+.custom-tracking-marker.status-transit .marker-icon-wrapper { background: #e67e22; color: #fff; }
+.custom-tracking-marker.status-transit .marker-pulse { background: rgba(230, 126, 34, 0.3); }
+
+.custom-tracking-marker.status-delivered .marker-icon-wrapper { background: #27ae60; color: #fff; }
+.custom-tracking-marker.status-delivered .marker-pulse { background: rgba(39, 174, 96, 0.3); }
+
+@keyframes marker-pulse-anim {
+    0% { transform: scale(0.5); opacity: 1; }
+    100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* Leaflet Polyline Animation */
+.animated-route-line {
+    stroke-dasharray: 8, 8;
+    animation: stroke-dash-flow 1.5s linear infinite;
+    stroke-linecap: round;
+}
+@keyframes stroke-dash-flow {
+    to {
+        stroke-dashoffset: -20;
+    }
+}
+
+/* Stepper Stepping UI */
+.tracking-stepper {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin: 15px 0 10px;
+    padding: 0 10px;
+}
+.tracking-stepper::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    right: 20px;
+    height: 2px;
+    background: var(--db-border);
+    z-index: 1;
+}
+.stepper-progress-line {
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    height: 2px;
+    background: var(--db-accent);
+    z-index: 2;
+    transition: width 0.3s ease;
+}
+.stepper-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 3;
+    position: relative;
+    flex: 1;
+}
+.step-node {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #151515;
+    border: 2px solid var(--db-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--db-muted);
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+.stepper-step.completed .step-node {
+    background: var(--db-accent);
+    border-color: var(--db-accent);
+    color: #111;
+}
+.stepper-step.active .step-node {
+    background: #111;
+    border-color: var(--db-accent);
+    color: var(--db-accent);
+    box-shadow: 0 0 8px var(--db-accent-soft);
+}
+.step-text {
+    font-size: 10px;
+    color: var(--db-muted);
+    margin-top: 6px;
+    font-weight: 600;
+    text-align: center;
+    transition: color 0.3s ease;
+}
+.stepper-step.completed .step-text,
+.stepper-step.active .step-text {
+    color: var(--db-text);
+}
+
+/* Custom Dropdown System */
+.custom-dropdown {
+    position: relative;
+    display: inline-block;
+    width: 150px;
+    font-size: 13px;
+    z-index: 100;
+}
+
+.dropdown-trigger {
+    width: 100%;
+    text-align: left;
+    padding: 10px 14px;
+    border: 1px solid var(--db-border);
+    background: #111;
+    color: var(--db-text);
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.dropdown-trigger:focus,
+.dropdown-trigger.open {
+    border-color: var(--db-accent);
+    box-shadow: 0 0 8px var(--db-accent-soft);
+}
+
+.dropdown-arrow {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.2s ease;
+    transform: rotate(0deg);
+    stroke: var(--db-muted);
+}
+.dropdown-trigger.open .dropdown-arrow {
+    transform: rotate(180deg);
+    stroke: var(--db-accent);
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: #151515;
+    border: 1px solid var(--db-border);
+    border-radius: 10px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+    margin-top: 6px;
+    padding: 6px 0;
+    list-style: none;
+    z-index: 110;
+    overflow: hidden;
+}
+.dropdown-menu.open {
+    display: block;
+}
+
+.dropdown-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    color: var(--db-muted);
+    transition: background 0.2s, color 0.2s;
+}
+.dropdown-item:hover {
+    background: var(--db-accent-soft);
+    color: var(--db-text);
+}
+.dropdown-item.active {
+    background: var(--db-accent);
+    color: #111;
+    font-weight: 600;
+}

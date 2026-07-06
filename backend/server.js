@@ -500,8 +500,17 @@ app.get("/health", (req, res) => {
 app.get("/api/admin/orders", requireAdmin, async (req, res) => {
   try {
     const Order = require("./models/Order");
+    const { buildDeliverySnapshot } = require("./utils/deliveryTracking");
     const orders = await Order.find().sort({ createdAt: -1 });
-    res.json(orders);
+    
+    // Enrich each order with realistic shipment/delivery tracking data
+    const enrichedOrders = orders.map(order => {
+      const orderObj = order.toObject();
+      orderObj.tracking = buildDeliverySnapshot(orderObj);
+      return orderObj;
+    });
+    
+    res.json(enrichedOrders);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
@@ -521,21 +530,97 @@ app.use("/api/user", dashboardRoutes(requireUser));
 // 1. Admin Analytics
 app.get("/api/admin/analytics", requireAdmin, async (req, res) => {
   try {
-    const totalRevenue = await Order.aggregate([{ $match: { orderStatus: { $ne: "CANCELLED" } } }, { $group: { _id: null, total: { $sum: "$totalAmount" } } }]);
-    const totalOrders = await Order.countDocuments();
-    const deliveredOrders = await Order.countDocuments({ orderStatus: "Delivered" });
-    const cancelledOrders = await Order.countDocuments({ orderStatus: "CANCELLED" });
-    const returnedOrders = await Order.countDocuments({ returnStatus: "Return Requested" });
-    const lowStockCount = await Book.countDocuments({ stockQuantity: { $lte: 5 } });
+    const { period } = req.query;
     
+    // Calculate start date based on period
+    const now = new Date();
+    let startDate = new Date();
+    let format = "%Y-%m-%d"; // default format (daily)
+    
+    if (period === "today") {
+      startDate.setHours(0, 0, 0, 0);
+      format = "%H:00";
+    } else if (period === "week") {
+      startDate.setDate(now.getDate() - 7);
+      format = "%Y-%m-%d";
+    } else if (period === "year") {
+      startDate.setDate(now.getDate() - 365);
+      format = "%Y-%m"; // monthly format for year
+    } else {
+      // Default to "month" (30 days)
+      startDate.setDate(now.getDate() - 30);
+      format = "%Y-%m-%d";
+    }
+
+    const matchQuery = { createdAt: { $gte: startDate } };
+    const matchRevenueQuery = { createdAt: { $gte: startDate }, orderStatus: { $ne: "CANCELLED" } };
+
+    // Card Stats
+    const totalRevenueResult = await Order.aggregate([
+      { $match: matchRevenueQuery },
+      { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+    ]);
+    const totalRevenue = totalRevenueResult[0]?.total || 0;
+    
+    const totalOrders = await Order.countDocuments(matchQuery);
+    const deliveredOrders = await Order.countDocuments({ ...matchQuery, orderStatus: "Delivered" });
+    const returnedOrders = await Order.countDocuments({ ...matchQuery, returnStatus: { $in: ["Return Requested", "Returned"] } });
+    
+    // Chart 1: Revenue Trend
+    const rawRevenueTrend = await Order.aggregate([
+      { $match: matchRevenueQuery },
+      { $group: {
+          _id: { $dateToString: { format: format, date: "$createdAt", timezone: "Asia/Kolkata" } },
+          amount: { $sum: "$totalAmount" }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+    const revenueTrend = rawRevenueTrend.map(item => ({
+      label: item._id,
+      value: item.amount
+    }));
+
+    // Chart 2: Category Performance (Actual sold count from Book schema)
+    const rawCategoryPerformance = await Book.aggregate([
+      { $group: { _id: "$category", count: { $sum: "$soldCount" } } },
+      { $sort: { count: -1 } }
+    ]);
+    const categoryPerformance = rawCategoryPerformance.map(item => ({
+      category: item._id ? (item._id.charAt(0).toUpperCase() + item._id.slice(1)) : "Other",
+      count: item.count || 0
+    }));
+
+    // Chart 3: Daily Sales (Orders Frequency)
+    const rawDailySales = await Order.aggregate([
+      { $match: matchQuery },
+      { $group: {
+          _id: { $dateToString: { format: format, date: "$createdAt", timezone: "Asia/Kolkata" } },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+    const dailySales = rawDailySales.map(item => ({
+      label: item._id,
+      count: item.count
+    }));
+
+    // Chart 4: Stock Distribution
+    const inStock = await Book.countDocuments({ stockQuantity: { $gt: 5 } });
+    const lowStock = await Book.countDocuments({ stockQuantity: { $gt: 0, $lte: 5 } });
+    const outOfStock = await Book.countDocuments({ stockQuantity: 0 });
+    const stockDistribution = { inStock, lowStock, outOfStock };
+
     res.json({
-      totalRevenue: totalRevenue[0]?.total || 0,
+      totalRevenue,
       totalOrders,
       deliveredOrders,
-      cancelledOrders,
       returnedOrders,
-      lowStockCount,
-      recentActivity: [] // Placeholder
+      revenueTrend,
+      categoryPerformance,
+      dailySales,
+      stockDistribution
     });
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
