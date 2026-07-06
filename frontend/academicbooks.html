@@ -54,13 +54,75 @@
                 <p>Find course-specific textbooks and reference materials for every department.</p>
             </header>
 
-            <div class="dept-tabs">
-                <button class="dept-tab active" data-dept="bca">&#128421;&#65039; BCA</button>
-                <button class="dept-tab" data-dept="bba">&#128202; BBA</button>
-                <button class="dept-tab" data-dept="bcom">&#128210; B.Com</button>
-                <button class="dept-tab" data-dept="bajmc">&#128240; BAJMC</button>
-                <button class="dept-tab" data-dept="bbib">&#127760; BB(IB)</button>
-                <button class="dept-tab" data-dept="bsc">&#128300; B.Sc</button>
+            <style>
+                .tw-flex { display: flex; }
+                .tw-flex-col { flex-direction: column; }
+                .tw-w-44 { width: 11rem; }
+                .tw-text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+                .tw-w-full { width: 100%; }
+                .tw-text-left { text-align: left; }
+                .tw-px-4 { padding-left: 1rem; padding-right: 1rem; }
+                .tw-pr-2 { padding-right: 0.5rem; }
+                .tw-py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+                .tw-border { border-width: 1px; border-style: solid; }
+                .tw-rounded { border-radius: 0.25rem; }
+                .tw-bg-white { background-color: #ffffff; }
+                .tw-text-gray-700 { color: #374151; }
+                .tw-border-gray-300 { border-color: #d1d5db; }
+                .tw-shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+                .tw-focus\:outline-none:focus { outline: 2px solid transparent; outline-offset: 2px; }
+                .tw-inline { display: inline; }
+                .tw-float-right { float: right; }
+                .tw-transition-transform { transition-property: transform; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+                .tw-duration-200 { transition-duration: 200ms; }
+                .tw--rotate-90 { transform: rotate(-90deg); }
+                .tw-w-5 { width: 1.25rem; }
+                .tw-h-5 { height: 1.25rem; }
+                .tw-hidden { display: none; }
+                .tw-overflow-hidden { overflow: hidden; }
+                .tw-shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+                .tw-mt-1 { margin-top: 0.25rem; }
+                .tw-cursor-pointer { cursor: pointer; }
+                
+                .tw-hover\:bg-gray-50:hover { background-color: #f9fafb; }
+                .tw-hover\:bg-indigo-500:hover { background-color: #6366f1; }
+                .tw-hover\:text-white:hover { color: #ffffff; }
+
+                /* peer/group logic */
+                .tw-peer:focus ~ .tw-peer-focus\:block { display: block; }
+                .tw-group:focus .tw-group-focus\:rotate-0 { transform: rotate(0deg); }
+                
+                /* Dark Mode Adjustments */
+                [data-theme="dark"] .tw-bg-white { background-color: #1a1a1a; }
+                [data-theme="dark"] .tw-text-gray-700 { color: #e0e0e0; }
+                [data-theme="dark"] .tw-border-gray-300 { border-color: #333; }
+                [data-theme="dark"] .tw-hover\:bg-gray-50:hover { background-color: #2a2a2a; }
+                
+                .dept-dropdown-container {
+                    margin: 20px auto 40px;
+                    display: flex;
+                    justify-content: center;
+                }
+            </style>
+
+            <div class="dept-dropdown-container">
+                <div class="tw-flex tw-flex-col tw-w-44 tw-text-sm relative" style="position: relative;">
+                    <button type="button" id="deptDropdownBtn" class="tw-peer tw-group tw-w-full tw-text-left tw-px-4 tw-pr-2 tw-py-2 tw-border tw-rounded tw-bg-white tw-text-gray-700 tw-border-gray-300 tw-shadow-sm tw-hover:bg-gray-50 tw-focus:outline-none">
+                        <span id="selectedDeptText">BCA</span>
+                        <svg class="tw-w-5 tw-h-5 tw-inline tw-float-right tw-transition-transform tw-duration-200 tw--rotate-90 tw-group-focus:rotate-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
+                        </svg>
+                    </button>
+                
+                    <ul class="tw-hidden tw-overflow-hidden tw-peer-focus:block tw-w-full tw-bg-white tw-border tw-border-gray-300 tw-rounded tw-shadow-md tw-mt-1 tw-py-2" style="position: absolute; top: 100%; z-index: 50; width: 100%;">
+                        <li class="tw-px-4 tw-py-2 tw-hover:bg-indigo-500 tw-hover:text-white tw-cursor-pointer" onmousedown="selectDept('bca', 'BCA')">BCA</li>
+                        <li class="tw-px-4 tw-py-2 tw-hover:bg-indigo-500 tw-hover:text-white tw-cursor-pointer" onmousedown="selectDept('bba', 'BBA')">BBA</li>
+                        <li class="tw-px-4 tw-py-2 tw-hover:bg-indigo-500 tw-hover:text-white tw-cursor-pointer" onmousedown="selectDept('bcom', 'B.Com')">B.Com</li>
+                        <li class="tw-px-4 tw-py-2 tw-hover:bg-indigo-500 tw-hover:text-white tw-cursor-pointer" onmousedown="selectDept('bajmc', 'BAJMC')">BAJMC</li>
+                        <li class="tw-px-4 tw-py-2 tw-hover:bg-indigo-500 tw-hover:text-white tw-cursor-pointer" onmousedown="selectDept('bbib', 'BB(IB)')">BB(IB)</li>
+                        <li class="tw-px-4 tw-py-2 tw-hover:bg-indigo-500 tw-hover:text-white tw-cursor-pointer" onmousedown="selectDept('bsc', 'B.Sc')">B.Sc</li>
+                    </ul>
+                </div>
             </div>
 
             <!-- BCA -->
@@ -129,15 +191,15 @@
     <script src="userPersistenceManager.js"></script>
     <script src="catalog.js"></script>
     <script>
-        document.querySelectorAll('.dept-tab').forEach(function (tab) {
-            tab.addEventListener('click', function () {
-                document.querySelectorAll('.dept-tab').forEach(function (t) { t.classList.remove('active'); });
-                document.querySelectorAll('.dept-section').forEach(function (s) { s.classList.remove('active'); });
-                this.classList.add('active');
-                var target = document.getElementById('dept-' + this.getAttribute('data-dept'));
-                if (target) target.classList.add('active');
-            });
-        });
+        function selectDept(deptId, deptName) {
+            document.getElementById('selectedDeptText').textContent = deptName;
+            document.querySelectorAll('.dept-section').forEach(function (s) { s.classList.remove('active'); });
+            var target = document.getElementById('dept-' + deptId);
+            if (target) target.classList.add('active');
+            
+            // Remove focus to close dropdown
+            document.getElementById('deptDropdownBtn').blur();
+        }
     </script>
 </body>
 

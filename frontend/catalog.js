@@ -146,8 +146,7 @@ function updateNavSession() {
 
   sessionBox.innerHTML = `
     <div class="user-session" id="userSession">
-      ${session.isAdminLoggedIn ? '<a href="admin.html" class="session-link">Admin Panel</a>' : ""}
-      <a href="dashboard.html" class="session-link">Dashboard</a>
+      ${session.isAdminLoggedIn ? '<a href="admin.html" class="session-link">Admin Panel</a>' : '<a href="dashboard.html" class="session-link">Dashboard</a>'}
       <span class="user-greeting">Hi, ${displayName}</span>
       <button type="button" class="logout-btn" id="logoutButton">Logout</button>
     </div>
